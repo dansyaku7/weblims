@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Pencil, Eye, EyeOff, Settings, ChevronLeft } from "lucide-react";
+import { Pencil, Eye, EyeOff, Settings, ChevronLeft, Save, FileSearch } from "lucide-react";
 
 interface ParameterResult {
   name: string;
@@ -29,8 +29,8 @@ interface SampleInfo {
   samplingLocation: string;
   samplingTime: string;
   notes: string;
-  temperature?: string; // Opsional
-  humidity?: string; // Opsional
+  temperature?: string;
+  humidity?: string;
 }
 
 interface Template {
@@ -40,8 +40,10 @@ interface Template {
   showKanLogo: boolean;
 }
 
+// 1. TAMBAHKAN PROPS BARU
 interface WorkplaceAirFormProps {
   template: Template;
+  nomorFppsPrefix: string; // <-- Props baru
   onTemplateChange: (template: Template) => void;
   onSave: (template: Template) => void;
   onBack: () => void;
@@ -50,6 +52,7 @@ interface WorkplaceAirFormProps {
 
 export function WorkplaceAirForm({
   template,
+  nomorFppsPrefix, // <-- 2. Terima props baru
   onTemplateChange,
   onSave,
   onBack,
@@ -75,6 +78,23 @@ export function WorkplaceAirForm({
     });
   };
 
+  // 3. LOGIKA BARU UNTUK SAMPEL NO
+  const handleSampleNoSuffixChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const suffix = e.target.value;
+    const newSampleNo = `${nomorFppsPrefix}${suffix}`;
+    onTemplateChange({
+      ...template,
+      sampleInfo: { ...template.sampleInfo, sampleNo: newSampleNo },
+    });
+  };
+
+  const sampleNoSuffix = template.sampleInfo.sampleNo.startsWith(nomorFppsPrefix)
+    ? template.sampleInfo.sampleNo.substring(nomorFppsPrefix.length)
+    : "";
+  // ------------------------------
+
   return (
     <Card className="w-full max-w-6xl">
       <CardHeader>
@@ -93,15 +113,26 @@ export function WorkplaceAirForm({
             Informasi Sampel & Catatan
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* --- 4. INPUT SAMPEL NO DIUBAH --- */}
             <div className="space-y-2">
               <Label htmlFor="sampleNo">Sampel No.</Label>
-              <Input
-                id="sampleNo"
-                name="sampleNo"
-                value={template.sampleInfo.sampleNo || ""}
-                onChange={handleSampleInfoChange}
-              />
+              <div className="flex items-center mt-1">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm h-10">
+                  {nomorFppsPrefix}
+                </span>
+                <Input
+                  id="sampleNo"
+                  name="sampleNoSuffix"
+                  value={sampleNoSuffix}
+                  onChange={handleSampleNoSuffixChange}
+                  placeholder=".01"
+                  className="rounded-l-none bg-transparent border border-input text-foreground"
+                />
+              </div>
             </div>
+            {/* ----------------------------- */}
+
             <div className="space-y-2">
               <Label htmlFor="samplingLocation">Lokasi Sampling</Label>
               <Input
@@ -174,7 +205,28 @@ export function WorkplaceAirForm({
                 className="p-4 rounded-lg border bg-muted/30 space-y-4"
               >
                 <div className="flex justify-between items-center">
-                  <p className="font-semibold">{param.name}</p>
+                  
+                  {/* --- 5. JUDUL PARAMETER DIUBAH --- */}
+                  <div className="flex-grow">
+                    <Label
+                      htmlFor={`param-name-${index}`}
+                      className="text-sm font-medium text-foreground flex items-center mb-1"
+                    >
+                      Parameter
+                      <Pencil className="w-3 h-3 ml-1.5 text-muted-foreground" />
+                    </Label>
+                    <Input
+                      id={`param-name-${index}`}
+                      value={param.name}
+                      onChange={(e) =>
+                        handleParameterChange(index, "name", e.target.value)
+                      }
+                      className="bg-transparent border border-input text-foreground font-semibold"
+                      placeholder="Nama Parameter"
+                    />
+                  </div>
+                  {/* ----------------------------- */}
+
                   <Button
                     variant="ghost"
                     size="icon"
@@ -185,7 +237,7 @@ export function WorkplaceAirForm({
                         !param.isVisible
                       )
                     }
-                    className="text-muted-foreground hover:text-foreground h-8 w-8"
+                    className="text-muted-foreground hover:text-foreground h-8 w-8 ml-4 self-end mb-1"
                   >
                     {param.isVisible ? (
                       <EyeOff className="w-4 h-4" />

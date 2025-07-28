@@ -46,9 +46,10 @@ interface ISPUTemplate {
   results: ISPUResult[];
 }
 
+// 1. TAMBAHKAN PROPS BARU
 interface ISPUFormProps {
   template: ISPUTemplate;
-  nomorFppsPrefix: string;
+  nomorFppsPrefix: string; // <-- Props baru
   onTemplateChange: (template: ISPUTemplate) => void;
   onSave: (template: ISPUTemplate) => void;
   onBack: () => void;
@@ -100,7 +101,7 @@ const getCategoryBadgeClass = (category: string): string => {
 
 export function ISPUForm({
   template,
-  nomorFppsPrefix,
+  nomorFppsPrefix, // <-- 2. Terima props baru
   onTemplateChange,
   onSave,
   onBack,
@@ -155,21 +156,10 @@ export function ISPUForm({
 
     (currentParam as any)[field] = value;
 
-    if (field === "testingResult") {
-      const { ispu, category } = calculateISPU(
-        currentParam.name,
-        value as string | number
-      );
-      currentParam.ispuCalculationResult = ispu;
-      currentParam.ispuCategory = category;
-    }
-    
-    // Also recalculate if the name changes (e.g., from PM10 to PM2.5)
-    if (field === "name") {
-       const { ispu, category } = calculateISPU(
-        value as string,
-        currentParam.testingResult
-      );
+    if (field === "testingResult" || field === "name") {
+      const nameToCalc = field === "name" ? (value as string) : currentParam.name;
+      const resultToCalc = field === "testingResult" ? (value as string | number) : currentParam.testingResult;
+      const { ispu, category } = calculateISPU(nameToCalc, resultToCalc);
       currentParam.ispuCalculationResult = ispu;
       currentParam.ispuCategory = category;
     }
@@ -187,7 +177,8 @@ export function ISPUForm({
       sampleInfo: { ...template.sampleInfo, [name]: value },
     });
   };
-  
+
+  // 3. LOGIKA BARU UNTUK SAMPEL NO
   const handleSampleNoSuffixChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -202,6 +193,7 @@ export function ISPUForm({
   const sampleNoSuffix = template.sampleInfo.sampleNo.startsWith(nomorFppsPrefix)
     ? template.sampleInfo.sampleNo.substring(nomorFppsPrefix.length)
     : "";
+  // ------------------------------
 
   return (
     <Card className="w-full max-w-6xl">
@@ -220,6 +212,8 @@ export function ISPUForm({
             Informasi Sampel & Catatan
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* --- 4. INPUT SAMPEL NO DIUBAH --- */}
             <div className="space-y-2">
               <Label htmlFor="sampleNo">Sampel No.</Label>
               <div className="flex items-center mt-1">
@@ -236,6 +230,8 @@ export function ISPUForm({
                 />
               </div>
             </div>
+            {/* ----------------------------- */}
+
             <div className="space-y-2">
               <Label htmlFor="samplingLocation">Lokasi Sampling</Label>
               <Input
@@ -278,6 +274,8 @@ export function ISPUForm({
                 className="p-4 rounded-lg border bg-muted/30 space-y-4"
               >
                 <div className="flex justify-between items-center">
+                  
+                  {/* --- 5. JUDUL PARAMETER DIUBAH --- */}
                   <div className="flex-grow">
                     <Label
                       htmlFor={`param-name-${index}`}
@@ -296,6 +294,8 @@ export function ISPUForm({
                       placeholder="Nama Parameter (e.g., PM10)"
                     />
                   </div>
+                  {/* ----------------------------- */}
+
                   <Button
                     variant="ghost"
                     size="icon"
