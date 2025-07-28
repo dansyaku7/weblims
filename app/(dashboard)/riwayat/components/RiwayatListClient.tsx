@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useRouter } from "next/navigation"; // 1. Import useRouter
 import {
   Table,
   TableBody,
@@ -17,7 +18,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, Search } from "lucide-react";
+// 2. Import ikon Edit (Pencil)
+import { FileText, Search, Pencil } from "lucide-react";
 import { RiwayatResult } from "@/lib/riwayat-service";
 
 // Definisikan tipe data untuk item riwayat
@@ -35,6 +37,7 @@ interface RiwayatListClientProps {
 }
 
 export function RiwayatListClient({ initialRiwayatResult }: RiwayatListClientProps) {
+  const router = useRouter(); // 3. Inisialisasi router
   const [riwayat, setRiwayat] = useState<RiwayatItem[]>(initialRiwayatResult.data || []);
   const [selectedItem, setSelectedItem] = useState<RiwayatItem | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -52,6 +55,12 @@ export function RiwayatListClient({ initialRiwayatResult }: RiwayatListClientPro
   const handleLihatDetail = (item: RiwayatItem) => {
     setSelectedItem(item);
     setIsDetailOpen(true);
+  };
+
+  // 4. Buat fungsi untuk menangani klik edit
+  const handleEdit = (item: RiwayatItem) => {
+    // Arahkan ke halaman surat dengan membawa ID sebagai parameter URL
+    router.push(`/surat?id=${item.id}`);
   };
 
   const formatDate = (dateString: string) => {
@@ -90,7 +99,7 @@ export function RiwayatListClient({ initialRiwayatResult }: RiwayatListClientPro
               <TableHead>Judul</TableHead>
               <TableHead className="w-[150px]">Tipe</TableHead>
               <TableHead className="w-[200px]">Tanggal Dibuat</TableHead>
-              <TableHead className="w-[120px] text-center">Aksi</TableHead>
+              <TableHead className="w-[200px] text-center">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -105,13 +114,22 @@ export function RiwayatListClient({ initialRiwayatResult }: RiwayatListClientPro
                     </span>
                   </TableCell>
                   <TableCell>{formatDate(item.createdAt)}</TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="text-center space-x-2">
+                    {/* 5. Tambahkan tombol Edit */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(item)}
+                    >
+                      <Pencil className="mr-2 h-3 w-3" />
+                      Edit
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleLihatDetail(item)}
                     >
-                      <FileText className="mr-2 h-4 w-4" />
+                      <FileText className="mr-2 h-3 w-3" />
                       Detail
                     </Button>
                   </TableCell>
