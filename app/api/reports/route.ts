@@ -1,23 +1,23 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+// Import fungsi service yang baru
+import { getAllReports } from "@/lib/report-service";
 
+// --- FUNGSI GET DIUBAH ---
 export async function GET() {
-  try {
-    const reports = await prisma.report.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-    return NextResponse.json({ success: true, data: reports });
-  } catch (error) {
+  const result = await getAllReports();
+
+  if (!result.success) {
     return NextResponse.json(
-      { success: false, error: "Gagal mengambil data laporan" },
+      { success: false, error: result.error },
       { status: 500 }
     );
   }
+
+  return NextResponse.json({ success: true, data: result.data });
 }
 
+// --- FUNGSI POST TETAP SAMA ---
 export async function POST(request: Request) {
   try {
     const body = await request.json();

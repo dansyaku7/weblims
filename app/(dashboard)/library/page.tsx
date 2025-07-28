@@ -1,23 +1,9 @@
+import { getAllReports } from "@/lib/report-service";
 import { ReportListClient } from "./components/ReportListClient";
 
-async function getReports() {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    const response = await fetch(`${baseUrl}/api/reports`, {
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      return { success: false, error: "Gagal memuat data." };
-    }
-    return response.json();
-  } catch (error) {
-    return { success: false, error: "Terjadi kesalahan jaringan." };
-  }
-}
-
 export default async function DataLibraryPage() {
-  const result = await getReports();
+  // Panggil langsung fungsi service-nya, tidak ada lagi fetch.
+  const result = await getAllReports();
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
@@ -27,6 +13,7 @@ export default async function DataLibraryPage() {
           Lihat dan kelola semua laporan yang telah disimpan.
         </p>
       </div>
+      {/* Kirim hasilnya ke Client Component */}
       <ReportListClient initialReportsResult={result} />
     </div>
   );
