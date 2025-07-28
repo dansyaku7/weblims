@@ -9,7 +9,8 @@ import {
   IconDatabase,
   IconNews,
 } from "@tabler/icons-react";
-import { FileText, FormInput, UserPlus } from "lucide-react";
+// 1. Impor ikon 'History' untuk menu riwayat
+import { FileText, FormInput, UserPlus, History } from "lucide-react";
 
 import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
@@ -26,16 +27,14 @@ import {
 import { useAuth } from "./context/AuthContext";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  // Ambil data user yang sedang login dari context
   const { user } = useAuth();
 
-  // Definisikan SEMUA kemungkinan menu beserta role yang diizinkan
   const allNavMain = [
     {
       title: "Dashboard",
       url: "/overview",
       icon: IconDashboard as any,
-      roles: ["SUPER_ADMIN"], // Hanya bisa dilihat oleh SUPER_ADMIN
+      roles: ["SUPER_ADMIN"],
     },
     {
       title: "Form Pendaftaran",
@@ -48,6 +47,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: "/surat",
       icon: UserPlus as any,
       roles: ["SUPER_ADMIN"],
+    },
+    // 2. Tambahkan objek menu baru untuk Riwayat di sini
+    {
+      title: "Riwayat Dokumen",
+      url: "/riwayat",
+      icon: History as any, // Gunakan ikon History
+      roles: ["SUPER_ADMIN"], // Sesuaikan role jika perlu
     },
     {
       title: "Surat Tugas Pengujian",
@@ -68,7 +74,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       name: "Data Library",
       url: "/library",
       icon: IconDatabase as any,
-      roles: ["SUPER_ADMIN", "ANALIS"], // Bisa dilihat SUPER_ADMIN dan ANALIS
+      roles: ["SUPER_ADMIN", "ANALIS"],
     },
     {
       name: "Certificates Of Analysis",
@@ -78,7 +84,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ];
 
-  // Filter menu berdasarkan role user yang sedang login
   const navMain = allNavMain.filter((item) =>
     item.roles.includes(user?.role || "")
   );
@@ -114,19 +119,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
-        {/* Tampilkan grup menu hanya jika ada item yang boleh dilihat */}
         {navMain.length > 0 && <NavMain items={navMain} />}
-
-        {/* Tampilkan garis pemisah hanya jika kedua grup menu ada */}
         {navMain.length > 0 && documents.length > 0 && (
           <div className="my-2 border-t border-border" />
         )}
-
         {documents.length > 0 && <NavDocuments items={documents} />}
       </SidebarContent>
 
       <SidebarFooter>
-        {/* NavUser sekarang akan mengambil data dari useAuth secara internal */}
         <NavUser />
       </SidebarFooter>
     </Sidebar>
