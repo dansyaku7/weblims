@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 import { LoadingProvider } from "@/components/context/LoadingContext";
+import AuthProvider from "@/components/AuthProvider"; // 1. Import AuthProvider
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,17 +31,20 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <LoadingProvider>
-            {children}
-            <Toaster richColors position="top-center" />
-          </LoadingProvider>
-        </ThemeProvider>
+        {/* 2. Bungkus semua provider lain dengan AuthProvider */}
+        <AuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <LoadingProvider>
+              {children}
+              <Toaster richColors position="top-center" />
+            </LoadingProvider>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );
