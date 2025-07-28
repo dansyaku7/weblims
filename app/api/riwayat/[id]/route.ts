@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache"; // 1. Import revalidatePath
 import prisma from "@/lib/prisma";
 
-// Fungsi untuk GET (Mengambil satu dokumen berdasarkan ID)
+// Fungsi untuk GET (tidak berubah)
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -31,7 +32,6 @@ export async function PUT(
   try {
     const id = params.id;
     const body = await request.json();
-    // Ambil semua data yang relevan dari body
     const { nomor, judul, dataForm } = body;
 
     const updatedRiwayat = await prisma.riwayat.update({
@@ -40,9 +40,12 @@ export async function PUT(
         nomor,
         judul,
         dataForm,
-        // updatedAt akan diperbarui secara otomatis oleh Prisma
       },
     });
+
+    // 2. Bersihkan cache untuk halaman riwayat
+    revalidatePath('/riwayat');
+    revalidatePath('/(dashboard)/riwayat', 'layout'); // Membersihkan cache layout juga
 
     return NextResponse.json(updatedRiwayat);
   } catch (error) {

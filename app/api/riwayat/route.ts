@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // Menggunakan default import
+import { revalidatePath } from "next/cache"; // 1. Import revalidatePath
+import prisma from "@/lib/prisma";
 
 // Handler untuk POST (menyimpan riwayat baru)
 export async function POST(request: Request) {
@@ -13,33 +14,25 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
-    // --- PERBAIKAN DIMULAI DI SINI ---
-    // 1. Cek apakah dokumen dengan nomor yang sama sudah ada
+    
     const existingRiwayat = await prisma.riwayat.findUnique({
-      where: {
-        nomor: nomor,
-      },
+      where: { nomor: nomor },
     });
 
-    // 2. Jika sudah ada, kembalikan error yang jelas
     if (existingRiwayat) {
       return NextResponse.json(
-        { message: `Dokumen dengan nomor "${nomor}" sudah ada di riwayat.` },
-        { status: 409 } // 409 Conflict adalah status yang tepat untuk ini
+        { message: `Dokumen dengan nomor "${nomor}" sudah ada.` },
+        { status: 409 }
       );
     }
-    // --- PERBAIKAN SELESAI ---
 
-    // 3. Jika belum ada, buat entri baru
     const newRiwayat = await prisma.riwayat.create({
-      data: {
-        tipe,
-        nomor,
-        judul,
-        dataForm,
-      },
+      data: { tipe, nomor, judul, dataForm },
     });
+
+    // 2. Bersihkan cache untuk halaman riwayat
+    revalidatePath('/riwayat');
+    revalidatePath('/(dashboard)/riwayat', 'layout'); // Membersihkan cache layout juga
 
     return NextResponse.json(newRiwayat, { status: 201 });
   } catch (error) {
@@ -51,7 +44,7 @@ export async function POST(request: Request) {
   }
 }
 
-// Handler untuk GET (mengambil semua data riwayat)
+// Handler untuk GET (tidak berubah)
 export async function GET() {
   try {
     const riwayatItems = await prisma.riwayat.findMany({
