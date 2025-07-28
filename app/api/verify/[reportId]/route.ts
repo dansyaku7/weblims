@@ -5,11 +5,14 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  // 1. UBAH 'id' MENJADI 'reportId' AGAR SESUAI NAMA FOLDER
+  { params }: { params: { reportId: string } } 
 ) {
-  const { id } = params;
+  // 2. GUNAKAN 'reportId' UNTUK MENGAMBIL NILAI DARI PARAMS
+  const { reportId } = params;
 
-  if (!id) {
+  // Pengecekan sekarang menggunakan variabel yang benar
+  if (!reportId) {
     return NextResponse.json(
       { success: false, error: "ID Laporan tidak boleh kosong." },
       { status: 400 }
@@ -17,16 +20,14 @@ export async function GET(
   }
 
   try {
-    // --- LOGIKA PRISMA YANG SUDAH FINAL ---
     const report = await prisma.report.findFirst({
       where: {
-        id: id,             // Mencari berdasarkan field 'id' yang benar
-        status: "selesai",  // DAN statusnya harus "selesai"
+        // 3. GUNAKAN 'reportId' DI DALAM QUERY
+        id: reportId, 
+        status: "selesai",
       },
     });
-    // ------------------------------------
 
-    // Jika tidak ditemukan (karena ID salah atau status belum 'selesai')
     if (!report) {
       return NextResponse.json(
         { success: false, error: "Sertifikat tidak valid atau belum final." },
@@ -34,9 +35,7 @@ export async function GET(
       );
     }
 
-    // Jika ditemukan, kirim data yang diperlukan untuk ditampilkan
-    const coverData: any = report.coverData; // Mengambil data JSON
-
+    const coverData: any = report.coverData;
     const verificationData = {
       certificateNo: coverData?.certificateNo || "N/A",
       customer: coverData?.customer || "N/A",
