@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import connectToDatabase from "@/lib/prisma";
+import connectToDatabase from "@/lib/prisma"; // Nama file ini mungkin perlu diganti jika tidak pakai prisma
 import Report from "@/models/Report";
 
 export async function GET(
@@ -11,7 +11,11 @@ export async function GET(
   try {
     await connectToDatabase();
 
-    const report = await Report.findById(id);
+    // --- BAGIAN INI YANG DIUBAH ---
+    // Jangan gunakan findById. Gunakan findOne untuk mencari di field spesifik.
+    // GANTI 'reportId' DENGAN NAMA FIELD YANG BENAR DI MODEL MONGOOSE KAMU
+    const report = await Report.findOne({ reportId: id });
+    // -----------------------------
 
     if (!report) {
       return NextResponse.json(
@@ -20,6 +24,7 @@ export async function GET(
       );
     }
 
+    // Ambil data yang ingin ditampilkan saat verifikasi berhasil
     const verificationData = {
       certificateNo: report.coverData?.certificateNo || "-",
       customer: report.coverData?.customer || "-",
