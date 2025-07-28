@@ -52,16 +52,23 @@ interface CoverFormProps {
   onPreview: () => void;
 }
 
+// --> PERUBAHAN DI SINI: Menambahkan semua subject baru dan mengurutkannya
 const allSubjects = [
   "Ambient Outdoor Air Quality",
-  "Workplace Air Quality",
-  "Noise",
-  "Odor",
-  "Illumination",
-  "Heat Stress",
-  "Wastewater",
   "Clean Water",
+  "Heat Stress",
+  "Illumination",
+  "ISPU", // Baru
+  "Noise",
+  "Non-SSE", // Baru
+  "Odor",
+  "SSSE", // Baru
+  "Surface Water", // Baru
+  "Vibration", // Baru
+  "Wastewater",
+  "Workplace Air Quality",
 ];
+
 const sampleTakenByOptions = [
   "PT. Delta Indonesia Laboratory",
   "Customer",
