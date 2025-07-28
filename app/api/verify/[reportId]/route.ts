@@ -1,6 +1,7 @@
+// Lokasi file: app/api/verify/[reportId]/route.ts
+
 import { NextResponse } from "next/server";
-import connectToDatabase from "@/lib/prisma"; // Nama file ini mungkin perlu diganti jika tidak pakai prisma
-import Report from "@/models/Report";
+import prisma from "@/lib/prisma";
 
 export async function GET(
   request: Request,
@@ -8,38 +9,47 @@ export async function GET(
 ) {
   const { id } = params;
 
+  if (!id) {
+    return NextResponse.json(
+      { success: false, error: "ID Laporan tidak boleh kosong." },
+      { status: 400 }
+    );
+  }
+
   try {
-    await connectToDatabase();
+    // --- LOGIKA PRISMA YANG SUDAH FINAL ---
+    const report = await prisma.report.findFirst({
+      where: {
+        id: id,             // Mencari berdasarkan field 'id' yang benar
+        status: "selesai",  // DAN statusnya harus "selesai"
+      },
+    });
+    // ------------------------------------
 
-    // --- BAGIAN INI YANG DIUBAH ---
-    // Jangan gunakan findById. Gunakan findOne untuk mencari di field spesifik.
-    // GANTI 'reportId' DENGAN NAMA FIELD YANG BENAR DI MODEL MONGOOSE KAMU
-    const report = await Report.findOne({ reportId: id });
-    // -----------------------------
-
+    // Jika tidak ditemukan (karena ID salah atau status belum 'selesai')
     if (!report) {
       return NextResponse.json(
-        { success: false, error: "Laporan tidak ditemukan di database." },
+        { success: false, error: "Sertifikat tidak valid atau belum final." },
         { status: 404 }
       );
     }
 
-    // Ambil data yang ingin ditampilkan saat verifikasi berhasil
+    // Jika ditemukan, kirim data yang diperlukan untuk ditampilkan
+    const coverData: any = report.coverData; // Mengambil data JSON
+
     const verificationData = {
-      certificateNo: report.coverData?.certificateNo || "-",
-      customer: report.coverData?.customer || "-",
-      reportDate: report.coverData?.reportDate || "-",
-      nomorFpps: report.coverData?.nomorFpps || "-",
+      certificateNo: coverData?.certificateNo || "N/A",
+      customer: coverData?.customer || "N/A",
+      reportDate: coverData?.reportDate || "N/A",
+      nomorFpps: coverData?.nomorFpps || "N/A",
     };
 
     return NextResponse.json({ success: true, data: verificationData });
+
   } catch (error) {
     console.error("Verification API Error:", error);
     return NextResponse.json(
-      {
-        success: false,
-        error: "ID laporan tidak valid atau terjadi kesalahan server.",
-      },
+      { success: false, error: "Terjadi kesalahan pada server." },
       { status: 500 }
     );
   }
