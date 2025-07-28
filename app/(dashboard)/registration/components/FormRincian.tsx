@@ -49,18 +49,32 @@ export default function FormRincian({
   onSubmit,
   onPrint,
 }: FormRincianProps) {
+
+  // --- FUNGSI INI YANG DIUBAH ---
   const generateId = (index: number) => {
-    const date = new Date();
-    const y = String(date.getFullYear()).slice(-2);
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    const suffix = formData.nomorFpps.slice(-3).padStart(3, "0");
-    const seq = String(index + 1).padStart(2, "0");
-    return `${y}${m}${d}-${suffix}.${seq}`;
+    // Ambil nomor FPPS dari formData props (ini sudah tanpa prefix "DIL-")
+    const noFpps = formData.nomorFpps || "";
+
+    // Jika nomor FPPS belum ada atau tidak valid, gunakan format fallback agar tidak error
+    if (noFpps.length < 9) {
+      console.warn("Nomor FPPS tidak valid, menggunakan format fallback.");
+      const fallbackSeq = String(index + 1).padStart(2, "0");
+      return `xxxxxx-xxx.${fallbackSeq}`;
+    }
+
+    // Logika baru sesuai permintaan:
+    // Contoh: nomorFpps "250712002" -> "250712-002.01"
+    const part1 = noFpps.slice(0, 6); // Mengambil "250712"
+    const part2 = noFpps.slice(6, 9); // Mengambil "002"
+    const seq = String(index + 1).padStart(2, "0"); // Mengambil nomor urut, e.g., "01"
+
+    return `${part1}-${part2}.${seq}`;
   };
+  // ------------------------------
 
   const handleAdd = () => {
-    const id = generateId(rincian.length);
+    // Saat item baru ditambahkan, generateId akan dipanggil dengan index baru
+    const id = generateId(rincian.length); 
     setRincian([
       ...rincian,
       { id, area: "", matriks: "", parameter: "", regulasi: "", metode: "" },
@@ -112,7 +126,7 @@ export default function FormRincian({
         <div className="space-y-4">
           {rincian.map((item, index) => (
             <div
-              key={item.id}
+              key={item.id} // Sebaiknya gunakan index sebagai key jika ID bisa berubah
               className="p-4 rounded-md border border-border space-y-4 relative"
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
