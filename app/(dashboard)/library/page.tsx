@@ -2,7 +2,7 @@ import { getAllReports } from "@/lib/report-service";
 import { ReportListClient } from "./components/ReportListClient";
 import { getServerSession } from "next-auth/next";
 // PENTING: Pastikan path ke authOptions sudah benar sesuai project kamu
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"; 
+import { authOptions } from "@/lib/auth"; 
 
 export default async function DataLibraryPage() {
   // Mengambil data laporan dari database
