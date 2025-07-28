@@ -1,3 +1,5 @@
+// File: app/(dashboard)/coa/components/SearchCard.tsx
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -12,11 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search, Loader2 } from "lucide-react";
 
+// 1. Tambahkan userRole ke dalam interface props
 interface SearchCardProps {
   fppsInput: string;
   setFppsInput: (value: string) => void;
   handleCariFpps: () => void;
   isLoading: boolean;
+  userRole?: string;
 }
 
 export function SearchCard({
@@ -24,10 +28,15 @@ export function SearchCard({
   setFppsInput,
   handleCariFpps,
   isLoading,
+  userRole, // <-- 2. Terima props userRole
 }: SearchCardProps) {
+
+  // 3. Cek apakah role adalah analis
+  const isAnalyst = userRole?.toLowerCase() === "analis";
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!isLoading) {
+    if (!isLoading && !isAnalyst) { // Tambahkan cek !isAnalyst
       handleCariFpps();
     }
   };
@@ -65,13 +74,15 @@ export function SearchCard({
                 value={`DIL-${fppsInput}`}
                 onChange={handleChange}
                 className="bg-transparent border border-input text-foreground mt-1 w-full"
-                disabled={isLoading}
+                // 4. Nonaktifkan jika loading ATAU jika dia analis
+                disabled={isLoading || isAnalyst}
               />
             </div>
 
             <Button
               type="submit"
-              disabled={isLoading || !fppsInput}
+              // 5. Nonaktifkan jika loading, ATAU jika input kosong, ATAU jika dia analis
+              disabled={isLoading || !fppsInput || isAnalyst}
               className="flex-shrink-0"
             >
               {isLoading ? (
@@ -82,6 +93,11 @@ export function SearchCard({
               {isLoading ? "Mencari..." : "Cari"}
             </Button>
           </div>
+          {isAnalyst && (
+            <p className="text-sm text-yellow-600 mt-4">
+              Fitur pencarian FPPS tidak tersedia untuk role Analis.
+            </p>
+          )}
         </form>
       </CardContent>
     </Card>
