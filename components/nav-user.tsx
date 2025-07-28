@@ -3,14 +3,12 @@
 import * as React from "react";
 import {
   IconLogout,
-  IconUserCircle,
   IconDotsVertical,
 } from "@tabler/icons-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -23,13 +21,19 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/components/AuthProvider";
+// 1. Ganti import useAuth dengan useSession dan signOut dari NextAuth
+import { useSession, signOut } from "next-auth/react";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
-  const { user, logout } = useAuth();
+  // 2. Gunakan useSession untuk mendapatkan data sesi
+  const { data: session, status } = useSession();
 
-  if (!user) {
+  // Ambil data user dari sesi
+  const user = session?.user;
+
+  // Tampilkan skeleton saat sesi sedang loading atau belum ada
+  if (status === "loading" || !user) {
     return (
       <div className="flex items-center gap-2 p-2.5">
         <Skeleton className="h-8 w-8 rounded-lg" />
@@ -40,12 +44,15 @@ export function NavUser() {
       </div>
     );
   }
-
+  
+  // Pastikan fullName ada sebelum di-split
   const fallback = user.fullName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
+    ? user.fullName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+    : "";
 
   return (
     <SidebarMenu>
@@ -59,7 +66,7 @@ export function NavUser() {
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage
                   src={"/images/avatars/user.png"}
-                  alt={user.fullName}
+                  alt={user.fullName || "User"}
                 />
                 <AvatarFallback className="rounded-lg">
                   {fallback}
@@ -85,7 +92,7 @@ export function NavUser() {
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage
                     src={"/images/avatars/user.png"}
-                    alt={user.fullName}
+                    alt={user.fullName || "User"}
                   />
                   <AvatarFallback className="rounded-lg">
                     {fallback}
@@ -100,14 +107,8 @@ export function NavUser() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {/* <DropdownMenuGroup>
-              <DropdownMenuItem disabled>
-                {" "}
-                <IconUserCircle />
-                Account
-              </DropdownMenuItem>
-            </DropdownMenuGroup> */}
-            <DropdownMenuItem onClick={logout}>
+            {/* 3. Ganti fungsi logout dengan signOut dari NextAuth */}
+            <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>
               <IconLogout />
               Log out
             </DropdownMenuItem>
