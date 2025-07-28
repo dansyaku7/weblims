@@ -11,11 +11,8 @@ export default async function DataLibraryPage() {
   // --- PERUBAHAN DIMULAI DI SINI ---
   // 1. Ambil data sesi user yang sedang login di server
   const session = await getServerSession(authOptions);
-
-  // 2. Tentukan apakah kolom customer boleh ditampilkan.
-  // Logikanya: tampilkan jika role BUKAN "ANALIS".
-  // Sesuaikan 'ANALIS' dengan nama role yang kamu gunakan jika berbeda.
-  const showCustomerName = session?.user?.role !== "ANALIS";
+  console.log("SESSION DATA:", session);
+  const showCustomerName = session?.user?.role !== "analis";
   // ------------------------------------
 
   return (
