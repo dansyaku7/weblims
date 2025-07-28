@@ -1,22 +1,9 @@
 import { getAllReports } from "@/lib/report-service";
 import { ReportListClient } from "./components/ReportListClient";
-import { getServerSession } from "next-auth/next";
-// PENTING: Pastikan path ke authOptions sudah benar sesuai project kamu
-import { authOptions } from "@/lib/auth"; 
 
 export default async function DataLibraryPage() {
-  // Mengambil data laporan dari database
+  // Panggil langsung fungsi service-nya, tidak ada lagi fetch.
   const result = await getAllReports();
-  
-  // --- PERUBAHAN DIMULAI DI SINI ---
-  // 1. Ambil data sesi user yang sedang login di server
-  const session = await getServerSession(authOptions);
-
-  // 2. Tentukan apakah kolom customer boleh ditampilkan.
-  // Logikanya: tampilkan jika role BUKAN "ANALIS".
-  // Sesuaikan 'ANALIS' dengan nama role yang kamu gunakan jika berbeda.
-  const showCustomerName = session?.user?.role !== "ANALIS";
-  // ------------------------------------
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
@@ -26,11 +13,8 @@ export default async function DataLibraryPage() {
           Lihat dan kelola semua laporan yang telah disimpan.
         </p>
       </div>
-      {/* 3. Kirim hasilnya sebagai props ke Client Component */}
-      <ReportListClient 
-        initialReportsResult={result} 
-        showCustomerName={showCustomerName} 
-      />
+      {/* Kirim hasilnya ke Client Component */}
+      <ReportListClient initialReportsResult={result} />
     </div>
   );
 }
