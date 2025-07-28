@@ -1,8 +1,14 @@
+// File: app/(dashboard)/library/page.tsx
+
 import { getAllReports } from "@/lib/report-service";
 import { ReportListClient } from "./components/ReportListClient";
+import { getUserFromSession } from "@/lib/session"; // <-- Import helper sesi
 
 export default async function DataLibraryPage() {
-  // Panggil langsung fungsi service-nya, tidak ada lagi fetch.
+  // Ambil data user dan role-nya dari sesi
+  const user = await getUserFromSession();
+  const userRole = user?.role;
+
   const result = await getAllReports();
 
   return (
@@ -13,8 +19,8 @@ export default async function DataLibraryPage() {
           Lihat dan kelola semua laporan yang telah disimpan.
         </p>
       </div>
-      {/* Kirim hasilnya ke Client Component */}
-      <ReportListClient initialReportsResult={result} />
+      {/* Kirim hasil dan userRole sebagai props */}
+      <ReportListClient initialReportsResult={result} userRole={userRole} />
     </div>
   );
 }

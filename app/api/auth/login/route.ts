@@ -1,7 +1,10 @@
+// File: app/api/auth/login/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
+import { cookies } from "next/headers"; // <-- Import cookies
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
@@ -32,9 +35,18 @@ export async function POST(req: NextRequest) {
       { expiresIn: "1d" }
     );
 
+    // --> PERUBAHAN UTAMA: Simpan token ke dalam cookie
+    cookies().set("auth-token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24, // 1 hari
+      path: "/",
+    });
+
+    // Kirim respons JSON tanpa token
     return NextResponse.json({
       message: "Login berhasil",
-      token,
       user: {
         id: user.id,
         fullName: user.fullName,

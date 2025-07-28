@@ -1,3 +1,5 @@
+// File: app/(dashboard)/library/components/ReportListClient.tsx
+
 "use client";
 
 import React, { useState } from "react";
@@ -28,11 +30,16 @@ const formatStatusText = (status: string) => {
   return status.charAt(0).toUpperCase() + status.slice(1);
 };
 
+// --> PERUBAHAN 1: Update tipe props untuk menerima userRole
+interface ReportListClientProps {
+  initialReportsResult: any;
+  userRole?: string;
+}
+
 export function ReportListClient({
   initialReportsResult,
-}: {
-  initialReportsResult: any;
-}) {
+  userRole, // <-- Terima prop userRole di sini
+}: ReportListClientProps) {
   const [reports, setReports] = useState(
     initialReportsResult.success ? initialReportsResult.data : []
   );
@@ -42,6 +49,10 @@ export function ReportListClient({
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const router = useRouter();
 
+  // --> PERUBAHAN 2: Buat variabel untuk mengecek role
+  const isAnalyst = userRole === "analis";
+
+  // ... (semua fungsi handleEdit, handleDelete, handleStatusChange tetap sama) ...
   const handleEdit = (reportId: string) => {
     router.push(`/coa?id=${reportId}`);
   };
@@ -108,6 +119,7 @@ export function ReportListClient({
     }
   };
 
+
   if (error) {
     return (
       <Alert variant="destructive">
@@ -131,7 +143,8 @@ export function ReportListClient({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nama Customer</TableHead>
+                {/* --> PERUBAHAN 3: Render kolom ini secara kondisional */}
+                {!isAnalyst && <TableHead>Nama Customer</TableHead>}
                 <TableHead>No. FPPS</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Aksi</TableHead>
@@ -141,9 +154,12 @@ export function ReportListClient({
               {reports.length > 0 ? (
                 reports.map((report: any) => (
                   <TableRow key={report.id}>
-                    <TableCell className="font-medium">
-                      {report.coverData?.customer || "-"}
-                    </TableCell>
+                    {/* --> PERUBAHAN 4: Render sel ini secara kondisional */}
+                    {!isAnalyst && (
+                      <TableCell className="font-medium">
+                        {report.coverData?.customer || "-"}
+                      </TableCell>
+                    )}
                     <TableCell>{report.coverData?.nomorFpps || "-"}</TableCell>
                     <TableCell>
                       <Badge
@@ -203,7 +219,8 @@ export function ReportListClient({
                 <TableRow>
                   <TableCell
                     key="empty-row"
-                    colSpan={4}
+                    // --> PERUBAHAN 5: Buat colSpan dinamis
+                    colSpan={isAnalyst ? 3 : 4}
                     className="text-center h-24"
                   >
                     Belum ada laporan yang tersimpan.
