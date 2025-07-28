@@ -3,12 +3,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import axios from "axios";
-import { useRouter } from "next/navigation"; // 1. Import useRouter
+import { useRouter, useSearchParams } from "next/navigation"; // Import useSearchParams
 import FormPengujian from "./components/FormPengujian";
 import PreviewDialog from "./components/PreviewDialog";
 import { PengujianDocumment } from "./components/PengujianDocument";
 import { useLoading } from "@/components/context/LoadingContext";
 
+// Interface untuk tipe data state
 interface SampleRow {
   id: string;
   parameter: string;
@@ -24,6 +25,7 @@ interface SignatureData {
   signatureUrlPj: string;
 }
 
+// Nilai awal untuk state
 const initialSignatureData: SignatureData = {
   admin: "",
   signatureUrlAdmin: "",
@@ -41,11 +43,13 @@ export default function SuratPengujianPage() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const documentRef = useRef<HTMLDivElement>(null);
   const { setIsLoading } = useLoading();
-  const router = useRouter(); // 2. Inisialisasi router
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const riwayatId = searchParams.get('id'); // Ambil ID dari URL
 
-  // useEffect untuk generate nomor surat (tidak ada perubahan)
+  // Effect untuk generate nomor surat (hanya jika mode create)
   useEffect(() => {
-    if (nomorFpps) {
+    if (nomorFpps && !riwayatId) {
       const bulanRomawi = [
         "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII",
       ];
@@ -54,16 +58,18 @@ export default function SuratPengujianPage() {
       const last3 = nomorFpps.slice(-3);
       const formattedNomor = `${last3[0]}.${last3.slice(1)}`;
       setNomorSurat(`${formattedNomor}/DIL/${bulanRomawi[bulan]}/${tahun}/STP`);
-    } else {
+    } else if (!nomorFpps) {
       setNomorSurat("");
     }
-  }, [nomorFpps]);
+  }, [nomorFpps, riwayatId]);
 
-  // useEffect untuk fetch data FPPS (tidak ada perubahan)
+  // Effect untuk fetch data FPPS (hanya jika mode create)
   useEffect(() => {
-    if (!nomorFpps) {
-      setPetugas([""]);
-      setSampelData([]);
+    if (!nomorFpps || riwayatId) {
+      if (!riwayatId) {
+          setPetugas([""]);
+          setSampelData([]);
+      }
       return;
     }
     const fetchFppsData = async () => {
@@ -106,7 +112,34 @@ export default function SuratPengujianPage() {
     return () => {
       clearTimeout(handler);
     };
-  }, [nomorFpps]);
+  }, [nomorFpps, riwayatId]);
+
+  // Effect untuk memuat data saat mode edit
+  useEffect(() => {
+    if (riwayatId) {
+      const fetchEditData = async () => {
+        setIsLoading(true);
+        try {
+          const res = await axios.get(`/api/riwayat/${riwayatId}`);
+          const { dataForm } = res.data;
+          
+          setNomorFpps(dataForm.nomorFpps);
+          setNomorSurat(dataForm.nomorSurat);
+          setPetugas(dataForm.petugas);
+          setSampelData(dataForm.sampelData);
+          setSignatureData(dataForm.signatureData);
+
+          toast.info(`Mode Edit: Memuat data untuk ${dataForm.nomorSurat}`);
+        } catch (error) {
+          toast.error("Gagal memuat data untuk diedit.");
+          router.push("/pengujian");
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchEditData();
+    }
+  }, [riwayatId, router, setIsLoading]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +147,6 @@ export default function SuratPengujianPage() {
       toast.error("Nomor FPPS harus diisi untuk menghasilkan Nomor Surat.");
       return;
     }
-
     setIsLoading(true);
 
     const formDataToSave = {
@@ -133,19 +165,20 @@ export default function SuratPengujianPage() {
     };
 
     try {
-      const minimumDelay = new Promise((resolve) => setTimeout(resolve, 500));
-      
-      const updateStatusPromise = axios.put(`/api/fpps/DIL-${nomorFpps}`, {
-        status: "sampling",
-      });
-      const saveToRiwayatPromise = axios.post("/api/riwayat", riwayatPayload);
-
-      await Promise.all([updateStatusPromise, saveToRiwayatPromise, minimumDelay]);
-
-      // 3. Ganti pesan sukses dan arahkan ke halaman riwayat
-      toast.success("Surat pengujian berhasil disimpan!");
-      router.push('/riwayat'); // <-- Navigasi ke halaman riwayat
-      
+      if (riwayatId) {
+        // --- MODE UPDATE ---
+        await axios.put(`/api/riwayat/${riwayatId}`, riwayatPayload);
+        toast.success("Dokumen berhasil diperbarui!");
+      } else {
+        // --- MODE CREATE ---
+        const updateStatusPromise = axios.put(`/api/fpps/DIL-${nomorFpps}`, {
+          status: "sampling",
+        });
+        const saveToRiwayatPromise = axios.post("/api/riwayat", riwayatPayload);
+        await Promise.all([updateStatusPromise, saveToRiwayatPromise]);
+        toast.success("Surat pengujian berhasil disimpan!");
+      }
+      router.push('/riwayat'); // Arahkan ke riwayat setelah create atau update
     } catch (error: any) {
       console.error("Save/Update Error:", error);
       toast.error(
@@ -172,10 +205,10 @@ export default function SuratPengujianPage() {
     <div className="space-y-8 px-4 py-6 md:px-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-          Surat Tugas Pengujian Sampel
+          {riwayatId ? "Edit Surat Tugas Pengujian" : "Surat Tugas Pengujian Sampel"}
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
-          Isi data untuk menerbitkan Surat Tugas Pengujian (STP).
+          {riwayatId ? "Ubah data yang diperlukan lalu simpan." : "Isi data untuk menerbitkan Surat Tugas Pengujian (STP)."}
         </p>
       </div>
 
@@ -192,6 +225,7 @@ export default function SuratPengujianPage() {
           setSignatureData={setSignatureData}
           onSubmit={handleSave} 
           onPrint={handleRequestPrint}
+          isEditMode={!!riwayatId}
         />
 
         <div className="print-only">

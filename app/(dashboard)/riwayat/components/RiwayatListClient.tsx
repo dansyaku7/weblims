@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { useRouter } from "next/navigation"; // 1. Import useRouter
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -18,11 +18,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// 2. Import ikon Edit (Pencil)
 import { FileText, Search, Pencil } from "lucide-react";
 import { RiwayatResult } from "@/lib/riwayat-service";
 
-// Definisikan tipe data untuk item riwayat
 interface RiwayatItem {
   id: string;
   tipe: string;
@@ -37,7 +35,7 @@ interface RiwayatListClientProps {
 }
 
 export function RiwayatListClient({ initialRiwayatResult }: RiwayatListClientProps) {
-  const router = useRouter(); // 3. Inisialisasi router
+  const router = useRouter();
   const [riwayat, setRiwayat] = useState<RiwayatItem[]>(initialRiwayatResult.data || []);
   const [selectedItem, setSelectedItem] = useState<RiwayatItem | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -57,10 +55,21 @@ export function RiwayatListClient({ initialRiwayatResult }: RiwayatListClientPro
     setIsDetailOpen(true);
   };
 
-  // 4. Buat fungsi untuk menangani klik edit
+  // --- PERBAIKAN DI SINI ---
   const handleEdit = (item: RiwayatItem) => {
-    // Arahkan ke halaman surat dengan membawa ID sebagai parameter URL
-    router.push(`/surat?id=${item.id}`);
+    let path = "";
+    // Tentukan path berdasarkan tipe dokumen
+    if (item.tipe === "surat_tugas") {
+      path = "/surat";
+    } else if (item.tipe === "surat_pengujian") {
+      path = "/pengujian";
+    } else {
+      // Fallback atau error jika tipe tidak dikenal
+      toast.error(`Tipe dokumen "${item.tipe}" tidak bisa diedit.`);
+      return;
+    }
+    // Arahkan ke halaman yang benar dengan membawa ID
+    router.push(`${path}?id=${item.id}`);
   };
 
   const formatDate = (dateString: string) => {
@@ -115,7 +124,6 @@ export function RiwayatListClient({ initialRiwayatResult }: RiwayatListClientPro
                   </TableCell>
                   <TableCell>{formatDate(item.createdAt)}</TableCell>
                   <TableCell className="text-center space-x-2">
-                    {/* 5. Tambahkan tombol Edit */}
                     <Button
                       variant="outline"
                       size="sm"
