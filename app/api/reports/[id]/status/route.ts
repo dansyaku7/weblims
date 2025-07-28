@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { revalidatePath } from "next/cache"; // <-- 1. IMPORT INI
 
 export async function PUT(
   request: Request,
@@ -38,6 +39,9 @@ export async function PUT(
 
       return report;
     });
+
+    // 2. TAMBAHKAN BARIS INI SETELAH TRANSAKSI SUKSES
+    revalidatePath("/library");
 
     return NextResponse.json({ success: true, data: updatedReport });
   } catch (error: any) {
