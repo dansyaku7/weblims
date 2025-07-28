@@ -1,8 +1,9 @@
 "use client";
 
-import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react";
+import { type Icon } from "@tabler/icons-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import clsx from "clsx"; // Import clsx untuk menggabungkan class dengan lebih mudah
 
 import {
   SidebarGroup,
@@ -35,9 +36,13 @@ export function NavMain({
                 <SidebarMenuButton
                   tooltip={item.title}
                   asChild
-                  className={
-                    isActive ? "bg-muted text-foreground font-semibold" : ""
-                  }
+                  // --- PERUBAHAN UTAMA DI SINI ---
+                  className={clsx(
+                    // Kelas dasar untuk semua tombol (hover, transisi, dll)
+                    "transition-colors duration-200 hover:bg-muted/50", 
+                    // Kelas yang hanya aktif jika item ini adalah halaman saat ini
+                    isActive && "bg-green-100 text-green-900 font-semibold dark:bg-green-900/30 dark:text-green-50"
+                  )}
                 >
                   <Link href={item.url}>
                     {item.icon && <item.icon />}
