@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import Image from "next/image";
 
+// Tipe data diubah untuk analysisDateEnd
 interface CoaData {
   customer: string;
   address: string;
@@ -32,7 +33,7 @@ interface CoaData {
   sampleTakenBy: string[];
   receiveDate: Date | undefined;
   analysisDateStart: Date | undefined;
-  analysisDateEnd: string;
+  analysisDateEnd: Date | undefined; // Diubah dari string
   reportDate: string;
   directorName: string;
   signatureUrl: string;
@@ -52,19 +53,18 @@ interface CoverFormProps {
   onPreview: () => void;
 }
 
-// --> PERUBAHAN DI SINI: Menambahkan semua subject baru dan mengurutkannya
 const allSubjects = [
   "Ambient Outdoor Air Quality",
   "Clean Water",
   "Heat Stress",
   "Illumination",
-  "ISPU", // Baru
+  "ISPU",
   "Noise",
-  "Non-SSE", // Baru
+  "Non-SSE",
   "Odor",
-  "SSSE", // Baru
-  "Surface Water", // Baru
-  "Vibration", // Baru
+  "SSSE",
+  "Surface Water",
+  "Vibration",
   "Wastewater",
   "Workplace Air Quality",
 ];
@@ -222,16 +222,40 @@ export function CoverForm({
                 </PopoverContent>
               </Popover>
             </div>
+
             <div>
               <Label className="text-sm font-medium text-foreground">
                 Analysis End
               </Label>
-              <Input
-                readOnly
-                value={coaData.analysisDateEnd}
-                className="mt-1 bg-transparent border border-input text-muted-foreground"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal mt-1 bg-transparent border border-input text-foreground"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {coaData.analysisDateEnd ? (
+                      format(coaData.analysisDateEnd, "PPP", { locale: id })
+                    ) : (
+                      <span className="text-muted-foreground">
+                        Pilih tanggal
+                      </span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={coaData.analysisDateEnd}
+                    onSelect={(date) =>
+                      handleCoaChange("analysisDateEnd", date)
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
+
             <div>
               <Label className="text-sm font-medium text-foreground">
                 Report Date
