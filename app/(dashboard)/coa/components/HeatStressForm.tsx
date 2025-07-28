@@ -31,27 +31,24 @@ interface HeatStressResultRow {
   globeTemp: string | number;
 }
 
-// Mendefinisikan struktur untuk informasi sampel
 interface SampleInfo {
   sampleNo: string;
 }
 
-// Mendefinisikan struktur utama untuk data template
 interface HeatStressTemplate {
   sampleInfo: SampleInfo;
   results: HeatStressResultRow[];
 }
 
-// Mendefinisikan tipe untuk props dari komponen HeatStressForm
 interface HeatStressFormProps {
   template: HeatStressTemplate;
+  nomorFppsPrefix: string;
   onTemplateChange: (template: HeatStressTemplate) => void;
   onSave: (template: HeatStressTemplate) => void;
   onBack: () => void;
   onPreview: () => void;
 }
 
-// Mendefinisikan tipe untuk props dari helper 'renderField'
 interface RenderFieldProps {
   label: string;
   id: string;
@@ -59,18 +56,17 @@ interface RenderFieldProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-// --- COMPONENT ---
 export function HeatStressForm({
   template,
+  nomorFppsPrefix,
   onTemplateChange,
   onSave,
   onBack,
   onPreview,
 }: HeatStressFormProps) {
-  // Fungsi untuk menangani perubahan pada input di setiap baris
   const handleChange = (
     index: number,
-    field: keyof Omit<HeatStressResultRow, "id">, // Omit 'id' as it's not meant to be changed
+    field: keyof Omit<HeatStressResultRow, "id">,
     value: string | number
   ) => {
     const newResults = [...template.results];
@@ -80,7 +76,6 @@ export function HeatStressForm({
     }
   };
 
-  // Fungsi untuk menambah baris baru
   const handleAddRow = () => {
     const newRow: HeatStressResultRow = {
       id: nanoid(),
@@ -90,22 +85,26 @@ export function HeatStressForm({
     onTemplateChange({ ...template, results: newResults });
   };
 
-  // Fungsi untuk menghapus baris
   const handleRemoveRow = (index: number) => {
     const newResults = template.results.filter((_, i) => i !== index);
     onTemplateChange({ ...template, results: newResults });
   };
 
-  // Fungsi untuk menangani perubahan pada informasi sampel umum
-  const handleSampleInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const handleSampleNoSuffixChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const suffix = e.target.value;
+    const newSampleNo = `${nomorFppsPrefix}${suffix}`;
     onTemplateChange({
       ...template,
-      sampleInfo: { ...template.sampleInfo, [name]: value },
+      sampleInfo: { ...template.sampleInfo, sampleNo: newSampleNo },
     });
   };
 
-  // Helper untuk mempersingkat pemanggilan input dan label
+  const sampleNoSuffix = template.sampleInfo.sampleNo.startsWith(nomorFppsPrefix)
+    ? template.sampleInfo.sampleNo.substring(nomorFppsPrefix.length)
+    : "";
+
   const renderField = ({ label, id, value, onChange }: RenderFieldProps) => (
     <div>
       <Label htmlFor={id} className="text-sm font-medium text-foreground">
@@ -133,22 +132,32 @@ export function HeatStressForm({
         </div>
       </CardHeader>
       <CardContent className="space-y-8">
-        {/* === Bagian Informasi Sampel === */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-foreground border-b pb-3">
             Informasi Sampel Umum
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-            {renderField({
-              label: "Sampel No.",
-              id: "sampleNo",
-              value: template.sampleInfo.sampleNo,
-              onChange: handleSampleInfoChange,
-            })}
+            <div>
+              <Label htmlFor="sampleNo" className="text-sm font-medium">
+                Sampel No.
+              </Label>
+              <div className="flex items-center mt-1">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm h-10">
+                  {nomorFppsPrefix}
+                </span>
+                <Input
+                  id="sampleNo"
+                  name="sampleNoSuffix"
+                  value={sampleNoSuffix}
+                  onChange={handleSampleNoSuffixChange}
+                  placeholder=".01"
+                  className="rounded-l-none bg-transparent border border-input text-foreground"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* === Bagian Hasil Pengujian === */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-foreground border-b pb-3">
             Hasil Pengujian per Lokasi

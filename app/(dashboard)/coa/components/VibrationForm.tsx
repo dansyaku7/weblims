@@ -21,23 +21,20 @@ import {
   Save,
 } from "lucide-react";
 import { nanoid } from "nanoid";
-
-// Impor data untuk tombol "Tambah Baris" (dari versi remote)
 import {
   vibrationParamsPermenaker5,
   vibrationParamsKepmenlh49_Kejut,
   vibrationParamsKepmenlh49_Class3,
 } from "../data/vibration-data";
 
-// Interface dari versimu (HEAD)
 interface ParameterResult {
   id: string;
   location: string;
   time: string;
   testingResult: string;
   unit: string;
-  frequency?: string; // Tambahkan properti opsional
-  method?: string; // Tambahkan properti opsional
+  frequency?: string;
+  method?: string;
 }
 
 interface SampleInfo {
@@ -55,6 +52,7 @@ interface Template {
 
 interface VibrationFormProps {
   template: Template;
+  nomorFppsPrefix: string;
   onTemplateChange: (template: Template) => void;
   onSave: (template: Template) => void;
   onBack: () => void;
@@ -63,6 +61,7 @@ interface VibrationFormProps {
 
 export function VibrationForm({
   template,
+  nomorFppsPrefix,
   onTemplateChange,
   onSave,
   onBack,
@@ -86,7 +85,21 @@ export function VibrationForm({
     });
   };
 
-  // Logika handleAddRow dari versi remote yang lebih lengkap
+  const handleSampleNoSuffixChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const suffix = e.target.value;
+    const newSampleNo = `${nomorFppsPrefix}${suffix}`;
+    onTemplateChange({
+      ...template,
+      sampleInfo: { ...template.sampleInfo, sampleNo: newSampleNo },
+    });
+  };
+
+  const sampleNoSuffix = template.sampleInfo.sampleNo.startsWith(nomorFppsPrefix)
+    ? template.sampleInfo.sampleNo.substring(nomorFppsPrefix.length)
+    : "";
+
   const handleAddRow = () => {
     let newRow;
     if (template.regulation === "permenaker_5") {
@@ -110,7 +123,6 @@ export function VibrationForm({
     onTemplateChange({ ...template, results: newResults });
   };
 
-  // Fungsi untuk merender baris input dinamis (dari versi remote)
   const renderDynamicRows = () => {
     const canAddRows = [
       "permenaker_5",
@@ -190,7 +202,6 @@ export function VibrationForm({
     );
   };
 
-  // Fungsi untuk merender daftar parameter tetap (dari versi remote)
   const renderFixedParamsList = () => {
     return (
       <div className="space-y-4">
@@ -250,7 +261,6 @@ export function VibrationForm({
     );
   };
 
-  // Logika renderFormContent dari versi remote yang lebih lengkap
   const renderFormContent = () => {
     switch (template.regulation) {
       case "permenaker_5":
@@ -287,12 +297,19 @@ export function VibrationForm({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <Label htmlFor="sampleNo">Sampel No.</Label>
-              <Input
-                id="sampleNo"
-                name="sampleNo"
-                value={template.sampleInfo.sampleNo || ""}
-                onChange={handleSampleInfoChange}
-              />
+              <div className="flex items-center mt-1">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm h-10">
+                  {nomorFppsPrefix}
+                </span>
+                <Input
+                  id="sampleNo"
+                  name="sampleNoSuffix"
+                  value={sampleNoSuffix}
+                  onChange={handleSampleNoSuffixChange}
+                  placeholder=".01"
+                  className="rounded-l-none bg-transparent border border-input text-foreground"
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="samplingLocation">Lokasi Sampling (Umum)</Label>
