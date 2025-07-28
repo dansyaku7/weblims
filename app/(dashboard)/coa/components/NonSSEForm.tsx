@@ -19,8 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronLeft, PlusCircle, Trash2, Save, FileSearch } from "lucide-react";
+import { ChevronLeft, PlusCircle, Trash2, Save, FileSearch, Settings } from "lucide-react";
 import { defaultNonSSERow } from "../data/non-sse-data";
+import { Switch } from "@/components/ui/switch";
 
 interface NonSSERow {
   id: string;
@@ -46,6 +47,7 @@ interface SampleInfo {
 interface NonSSETemplate {
   sampleInfo: SampleInfo;
   results: NonSSERow[];
+  showKanLogo: boolean;
 }
 
 interface NonSSEFormProps {
@@ -147,7 +149,7 @@ export function NonSSEForm({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <Label htmlFor="sampleNo">Sampel No. (Umum)</Label>
-               <div className="flex items-center mt-1">
+              <div className="flex items-center mt-1">
                 <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm h-10">
                   {nomorFppsPrefix}
                 </span>
@@ -319,6 +321,31 @@ export function NonSSEForm({
             </Button>
           </div>
         </div>
+
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium border-b pb-3 flex items-center">
+            <Settings className="w-4 h-4 mr-2" />
+            Pengaturan Halaman
+          </h3>
+          <div className="flex items-center justify-between rounded-lg border bg-muted/30 p-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="kan-logo-switch" className="text-base">
+                Tampilkan Logo KAN
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Aktifkan untuk menampilkan logo KAN di header halaman ini.
+              </p>
+            </div>
+            <Switch
+              id="kan-logo-switch"
+              checked={template.showKanLogo}
+              onCheckedChange={(value: boolean) =>
+                onTemplateChange({ ...template, showKanLogo: value })
+              }
+            />
+          </div>
+        </div>
+
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="ghost" onClick={onPreview}>
