@@ -1,5 +1,3 @@
-// Lokasi: app/api/auth/[...nextauth]/route.ts
-
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
@@ -28,31 +26,48 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        // Jika user tidak ditemukan atau password salah
-        if (!user || !(await bcrypt.compare(credentials.password, user.password))) {
+        // Pengecekan 1: Pastikan user ditemukan
+        if (!user) {
           throw new Error("Email atau password salah.");
         }
 
-        // Jika berhasil, kembalikan data user yang akan disimpan di token
+        // Pengecekan 2: Pastikan user punya password di database
+        if (!user.password) {
+          // Ini mencegah bcrypt error jika password null
+          throw new Error("Akun ini tidak memiliki password.");
+        }
+
+        const isPasswordCorrect = await bcrypt.compare(
+          credentials.password,
+          user.password
+        );
+
+        if (!isPasswordCorrect) {
+          throw new Error("Email atau password salah.");
+        }
+        
+        // Pengecekan 3: Pastikan user punya role yang valid
+        if (!user.role || !user.role.name) {
+            throw new Error("Akun ini tidak memiliki role yang valid.");
+        }
+
+        // Jika semua aman, kembalikan data user
         return {
           id: user.id.toString(),
           email: user.email,
           fullName: user.fullName,
-          role: user.role.name, // Ambil nama role
+          role: user.role.name,
         };
       },
     }),
   ],
   
-  // Menggunakan JSON Web Tokens (JWT) untuk sesi
   session: {
     strategy: "jwt",
   },
 
-  // Callbacks untuk menambahkan data custom (seperti role) ke token dan sesi
   callbacks: {
     async jwt({ token, user }) {
-      // Saat login pertama kali, 'user' akan ada isinya
       if (user) {
         token.role = user.role;
         token.id = user.id;
@@ -60,7 +75,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      // Kirim data dari token ke sesi, agar bisa diakses di client/server
       if (session.user) {
         session.user.role = token.role as string;
         session.user.id = token.id as string;
@@ -69,13 +83,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-  // Secret untuk JWT, ambil dari environment variable
-  secret: process.env.JWT_SECRET,
-
-  // Halaman custom untuk login jika diperlukan
-  // pages: {
-  //   signIn: '/login',
-  // },
+  secret: process.env.NEXTAUTH_SECRET,
 };
 
 // Export handler untuk NextAuth
