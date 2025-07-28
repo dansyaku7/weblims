@@ -25,11 +25,7 @@ interface FppsDocumentProps {
 
 export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
   ({ data }, ref) => {
-    const alamatArray = data.alamatPelanggan.split("Cikarang Barat");
-    const alamatL1 = alamatArray[0] ? `${alamatArray[0]}Cikarang Barat` : "";
-    const alamatL2 = alamatArray[1]
-      ? alamatArray[1].replace(",", "").trim()
-      : "";
+    // Logika pemisahan alamat sudah dihapus dari sini.
 
     return (
       <div
@@ -82,10 +78,7 @@ export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
                         Alamat Pelanggan
                       </td>
                       <td className="p-1 align-top">:</td>
-                      <td className="p-1">
-                        <div>{alamatL1}</div>
-                        <div>{alamatL2}</div>
-                      </td>
+                      <td className="p-1">{data.alamatPelanggan}</td>
                     </tr>
                     <tr className="border-b border-black">
                       <td className="p-1"></td>
@@ -153,7 +146,6 @@ export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
 
         <div className="mt-2">
           <table className="w-full border-collapse border border-black text-xs">
-            {/* ...thead dan tbody rincian... */}
             <thead className="font-bold">
               <tr>
                 <th
