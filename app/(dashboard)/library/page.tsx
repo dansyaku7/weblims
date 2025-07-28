@@ -1,3 +1,5 @@
+// File: app/(dashboard)/library/page.tsx
+
 import { getAllReports } from "@/lib/report-service";
 import { ReportListClient } from "./components/ReportListClient";
 import { getUserFromSession } from "@/lib/session";
@@ -5,8 +7,7 @@ import { getUserFromSession } from "@/lib/session";
 export default async function DataLibraryPage() {
   const user = await getUserFromSession();
   const userRole = user?.role;
-
-  // --> TAMBAHKAN BARIS INI UNTUK DEBUGGING <--
+  
   console.log("ROLE YANG TERBACA DI SERVER:", userRole);
 
   const result = await getAllReports();
@@ -14,7 +15,8 @@ export default async function DataLibraryPage() {
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Data Library</h1>
+        {/* --> UBAH BARIS DI BAWAH INI <-- */}
+        <h1 className="text-3xl font-bold">Data Library v2</h1>
         <p className="text-muted-foreground mt-1">
           Lihat dan kelola semua laporan yang telah disimpan.
         </p>
