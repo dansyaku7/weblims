@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileText, Search, Pencil } from "lucide-react";
 import { RiwayatResult } from "@/lib/riwayat-service";
+import { toast } from "sonner";
 
 interface RiwayatItem {
   id: string;
@@ -55,7 +56,6 @@ export function RiwayatListClient({ initialRiwayatResult }: RiwayatListClientPro
     setIsDetailOpen(true);
   };
 
-  // --- PERBAIKAN DI SINI ---
   const handleEdit = (item: RiwayatItem) => {
     let path = "";
     // Tentukan path berdasarkan tipe dokumen
@@ -63,8 +63,9 @@ export function RiwayatListClient({ initialRiwayatResult }: RiwayatListClientPro
       path = "/surat";
     } else if (item.tipe === "surat_pengujian") {
       path = "/pengujian";
+    } else if (item.tipe === "berita_acara") { // <-- KONDISI INI PENTING
+      path = "/berita";
     } else {
-      // Fallback atau error jika tipe tidak dikenal
       toast.error(`Tipe dokumen "${item.tipe}" tidak bisa diedit.`);
       return;
     }
