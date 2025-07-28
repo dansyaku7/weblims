@@ -50,7 +50,7 @@ export function ReportListClient({
   const router = useRouter();
 
   // --> PERUBAHAN 2: Buat variabel untuk mengecek role
-  const isAnalyst = userRole === "analis";
+  const isAnalyst = userRole?.toLowerCase() === "analis";
 
   // ... (semua fungsi handleEdit, handleDelete, handleStatusChange tetap sama) ...
   const handleEdit = (reportId: string) => {
