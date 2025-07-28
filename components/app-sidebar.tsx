@@ -1,5 +1,3 @@
-// Lokasi: app/component/app-sidebar.tsx
-
 "use client";
 
 import Link from "next/link";
@@ -25,20 +23,19 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useSession } from "next-auth/react"; // 1. Ganti useAuth menjadi useSession
+import { useAuth } from "./context/AuthContext";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  // 2. Ambil data sesi dari NextAuth
-  const { data: session } = useSession(); 
-  const userRole = session?.user?.role; // Ambil role dari sesi
+  // Ambil data user yang sedang login dari context
+  const { user } = useAuth();
 
-  // ... (definisi allNavMain dan allDocuments tetap sama) ...
-   const allNavMain = [
+  // Definisikan SEMUA kemungkinan menu beserta role yang diizinkan
+  const allNavMain = [
     {
       title: "Dashboard",
       url: "/overview",
       icon: IconDashboard as any,
-      roles: ["SUPER_ADMIN"], 
+      roles: ["SUPER_ADMIN"], // Hanya bisa dilihat oleh SUPER_ADMIN
     },
     {
       title: "Form Pendaftaran",
@@ -71,7 +68,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       name: "Data Library",
       url: "/library",
       icon: IconDatabase as any,
-      roles: ["SUPER_ADMIN", "ANALIS"], 
+      roles: ["SUPER_ADMIN", "ANALIS"], // Bisa dilihat SUPER_ADMIN dan ANALIS
     },
     {
       name: "Certificates Of Analysis",
@@ -81,32 +78,55 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ];
 
-
-  // 3. Filter menu berdasarkan userRole dari sesi
+  // Filter menu berdasarkan role user yang sedang login
   const navMain = allNavMain.filter((item) =>
-    item.roles.includes(userRole || "")
+    item.roles.includes(user?.role || "")
   );
 
   const documents = allDocuments.filter((item) =>
-    item.roles.includes(userRole || "")
+    item.roles.includes(user?.role || "")
   );
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
-        {/* ... (Header tidak berubah) ... */}
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+            >
+              <Link href="/dashboard">
+                <Image
+                  src="/images/logo-delta.png"
+                  alt="Logo Delta"
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                  className="w-18 h-auto"
+                  priority
+                />
+              </Link>
+            </SidebarMenuButton>
+            <div className="my-2 border-t border-border" />
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
 
       <SidebarContent>
+        {/* Tampilkan grup menu hanya jika ada item yang boleh dilihat */}
         {navMain.length > 0 && <NavMain items={navMain} />}
+
+        {/* Tampilkan garis pemisah hanya jika kedua grup menu ada */}
         {navMain.length > 0 && documents.length > 0 && (
           <div className="my-2 border-t border-border" />
         )}
+
         {documents.length > 0 && <NavDocuments items={documents} />}
       </SidebarContent>
 
       <SidebarFooter>
-        {/* NavUser kemungkinan perlu diubah juga untuk menggunakan useSession */}
+        {/* NavUser sekarang akan mengambil data dari useAuth secara internal */}
         <NavUser />
       </SidebarFooter>
     </Sidebar>
