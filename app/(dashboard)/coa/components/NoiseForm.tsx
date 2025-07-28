@@ -67,6 +67,7 @@ interface NoiseTemplate {
 
 interface NoiseFormProps {
   template: NoiseTemplate;
+  nomorFppsPrefix: string;
   onTemplateChange: (template: NoiseTemplate) => void;
   onSave: (template: NoiseTemplate) => void;
   onBack: () => void;
@@ -75,6 +76,7 @@ interface NoiseFormProps {
 
 export function NoiseForm({
   template,
+  nomorFppsPrefix,
   onTemplateChange,
   onSave,
   onBack,
@@ -89,6 +91,21 @@ export function NoiseForm({
       sampleInfo: { ...template.sampleInfo, [name]: value },
     });
   };
+
+  const handleSampleNoSuffixChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const suffix = e.target.value;
+    const newSampleNo = `${nomorFppsPrefix}${suffix}`;
+    onTemplateChange({
+      ...template,
+      sampleInfo: { ...template.sampleInfo, sampleNo: newSampleNo },
+    });
+  };
+
+  const sampleNoSuffix = template.sampleInfo.sampleNo.startsWith(nomorFppsPrefix)
+    ? template.sampleInfo.sampleNo.substring(nomorFppsPrefix.length)
+    : "";
 
   const handleSimpleRowChange = (
     index: number,
@@ -306,11 +323,19 @@ export function NoiseForm({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="space-y-2">
               <Label>Sampel No.</Label>
-              <Input
-                name="sampleNo"
-                value={template.sampleInfo.sampleNo || ""}
-                onChange={handleSampleInfoChange}
-              />
+               <div className="flex items-center mt-1">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm h-10">
+                  {nomorFppsPrefix}
+                </span>
+                <Input
+                  id="sampleNo"
+                  name="sampleNoSuffix"
+                  value={sampleNoSuffix}
+                  onChange={handleSampleNoSuffixChange}
+                  placeholder=".01"
+                  className="rounded-l-none bg-transparent border border-input text-foreground"
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Lokasi Sampling</Label>

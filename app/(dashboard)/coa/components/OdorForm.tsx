@@ -48,6 +48,7 @@ interface Template {
 
 interface OdorFormProps {
   template: Template;
+  nomorFppsPrefix: string;
   onTemplateChange: (template: Template) => void;
   onSave: (template: Template) => void;
   onBack: () => void;
@@ -56,6 +57,7 @@ interface OdorFormProps {
 
 export function OdorForm({
   template,
+  nomorFppsPrefix,
   onTemplateChange,
   onSave,
   onBack,
@@ -86,6 +88,21 @@ export function OdorForm({
       sampleInfo: { ...template.sampleInfo, [name]: value },
     });
   };
+
+  const handleSampleNoSuffixChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const suffix = e.target.value;
+    const newSampleNo = `${nomorFppsPrefix}${suffix}`;
+    onTemplateChange({
+      ...template,
+      sampleInfo: { ...template.sampleInfo, sampleNo: newSampleNo },
+    });
+  };
+
+  const sampleNoSuffix = template.sampleInfo.sampleNo.startsWith(nomorFppsPrefix)
+    ? template.sampleInfo.sampleNo.substring(nomorFppsPrefix.length)
+    : "";
 
   const renderField = (
     label: string,
@@ -138,12 +155,24 @@ export function OdorForm({
             Informasi Sampel Umum
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-            {renderField(
-              "Sampel No.",
-              "sampleNo",
-              template.sampleInfo.sampleNo,
-              handleSampleInfoChange
-            )}
+            <div>
+              <Label htmlFor="sampleNo" className="text-sm font-medium">
+                Sampel No.
+              </Label>
+              <div className="flex items-center mt-1">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-muted text-muted-foreground text-sm h-10">
+                  {nomorFppsPrefix}
+                </span>
+                <Input
+                  id="sampleNo"
+                  name="sampleNoSuffix"
+                  value={sampleNoSuffix}
+                  onChange={handleSampleNoSuffixChange}
+                  placeholder=".01"
+                  className="rounded-l-none bg-transparent border border-input text-foreground"
+                />
+              </div>
+            </div>
             {renderField(
               "Lokasi Sampling",
               "samplingLocation",
@@ -171,7 +200,24 @@ export function OdorForm({
                 key={param.id}
                 className="border rounded-lg p-4 space-y-4 bg-muted/20"
               >
-                <p className="font-semibold text-foreground">{param.name}</p>
+                <div className="flex-grow">
+                  <Label
+                    htmlFor={`param-name-${index}`}
+                    className="text-sm font-medium text-foreground flex items-center mb-1"
+                  >
+                    Parameter
+                    <Pencil className="w-3 h-3 ml-1.5 text-muted-foreground" />
+                  </Label>
+                  <Input
+                    id={`param-name-${index}`}
+                    value={param.name}
+                    onChange={(e) =>
+                      handleParameterChange(index, "name", e.target.value)
+                    }
+                    className="bg-transparent border border-input text-foreground font-semibold mb-4"
+                    placeholder="Nama Parameter"
+                  />
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {renderField(
                     "Hasil Tes",
