@@ -18,12 +18,12 @@ import {
   Pencil,
   Trash2,
   Loader2,
-  ArrowLeft, // 1. Impor ikon ArrowLeft
+  ArrowLeft,
 } from "lucide-react";
 
 // Tipe data untuk nama template agar lebih mudah dibaca
 const getTemplateDisplayName = (template: any) => {
-  // ... (fungsi getTemplateDisplayName tidak perlu diubah)
+  // ... (fungsi ini tidak berubah)
   switch (template.templateType) {
     case "odor":
       if (template.regulation === "permenaker_a")
@@ -61,7 +61,7 @@ const getTemplateDisplayName = (template: any) => {
   }
 };
 
-// 2. Tambahkan prop onBackToCover ke interface
+// --> PERUBAHAN 1: Tambahkan 'userRole' ke interface Props
 interface Props {
   templates: any[];
   onAddNew: () => void;
@@ -69,8 +69,9 @@ interface Props {
   onRemove: (templateId: string) => void;
   onSave: () => void;
   onPrint: () => void;
-  onBackToCover: () => void; // Prop baru untuk tombol kembali
+  onBackToCover: () => void;
   isSaving: boolean;
+  userRole?: string; // Prop baru untuk role pengguna
 }
 
 export function ReportDashboard({
@@ -80,9 +81,14 @@ export function ReportDashboard({
   onRemove,
   onSave,
   onPrint,
-  onBackToCover, // 3. Terima prop baru
+  onBackToCover,
   isSaving,
+  userRole, // --> PERUBAHAN 2: Terima prop userRole di sini
 }: Props) {
+  
+  // --> PERUBAHAN 3: Buat variabel untuk mengecek role
+  const isAnalyst = userRole?.toLowerCase() === "analis";
+
   return (
     <Card className="w-full max-w-4xl">
       <CardHeader>
@@ -94,11 +100,17 @@ export function ReportDashboard({
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
-            {/* 4. Tambahkan tombol baru di sini */}
-            <Button variant="outline" onClick={onBackToCover}>
+            
+            {/* --> PERUBAHAN 4: Tambahkan properti 'disabled' pada tombol ini */}
+            <Button
+              variant="outline"
+              onClick={onBackToCover}
+              disabled={isAnalyst}
+            >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Kembali ke Cover
             </Button>
+
             <Button variant="outline" onClick={onSave} disabled={isSaving}>
               {isSaving ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -114,6 +126,7 @@ export function ReportDashboard({
         </div>
       </CardHeader>
       <CardContent>
+        {/* ... (Sisa kode CardContent tidak perlu diubah) ... */}
         <div className="border rounded-lg">
           <div className="p-4 border-b">
             <h3 className="font-semibold text-foreground">

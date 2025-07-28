@@ -509,6 +509,7 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
             onPrint={handlePrint}
             isSaving={isLoading}
             onBackToCover={handleBackToCover}
+            userRole={userRole}
           />
         );
       case "template_selection":
