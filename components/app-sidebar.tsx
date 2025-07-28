@@ -48,13 +48,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: UserPlus as any,
       roles: ["SUPER_ADMIN"],
     },
-    // 2. Tambahkan objek menu baru untuk Riwayat di sini
-    {
-      title: "Riwayat Dokumen",
-      url: "/riwayat",
-      icon: History as any, // Gunakan ikon History
-      roles: ["SUPER_ADMIN"], // Sesuaikan role jika perlu
-    },
     {
       title: "Surat Tugas Pengujian",
       url: "/pengujian",
@@ -66,6 +59,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: "/berita",
       icon: IconNews as any,
       roles: ["SUPER_ADMIN"],
+    },
+    {
+      title: "Riwayat Dokumen",
+      url: "/riwayat",
+      icon: History as any, // Gunakan ikon History
+      roles: ["SUPER_ADMIN"], // Sesuaikan role jika perlu
     },
   ];
 
