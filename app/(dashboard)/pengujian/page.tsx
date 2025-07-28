@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import axios from "axios";
+import { useRouter } from "next/navigation"; // 1. Import useRouter
 import FormPengujian from "./components/FormPengujian";
 import PreviewDialog from "./components/PreviewDialog";
 import { PengujianDocumment } from "./components/PengujianDocument";
@@ -40,6 +41,7 @@ export default function SuratPengujianPage() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const documentRef = useRef<HTMLDivElement>(null);
   const { setIsLoading } = useLoading();
+  const router = useRouter(); // 2. Inisialisasi router
 
   // useEffect untuk generate nomor surat (tidak ada perubahan)
   useEffect(() => {
@@ -106,15 +108,6 @@ export default function SuratPengujianPage() {
     };
   }, [nomorFpps]);
 
-  const resetForm = () => {
-    setNomorFpps("");
-    setNomorSurat("");
-    setPetugas([""]);
-    setSampelData([]);
-    setSignatureData(initialSignatureData);
-  };
-
-  // --- PERUBAHAN UTAMA ADA DI FUNGSI INI ---
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nomorFpps || !nomorSurat) {
@@ -124,7 +117,6 @@ export default function SuratPengujianPage() {
 
     setIsLoading(true);
 
-    // 1. Kumpulkan semua data form yang relevan untuk disimpan
     const formDataToSave = {
       nomorFpps,
       nomorSurat,
@@ -133,9 +125,8 @@ export default function SuratPengujianPage() {
       signatureData,
     };
 
-    // 2. Siapkan payload untuk dikirim ke API riwayat
     const riwayatPayload = {
-      tipe: "surat_pengujian", // Gunakan tipe yang spesifik
+      tipe: "surat_pengujian",
       nomor: nomorSurat,
       judul: `Surat Pengujian - ${nomorSurat}`,
       dataForm: formDataToSave,
@@ -144,18 +135,17 @@ export default function SuratPengujianPage() {
     try {
       const minimumDelay = new Promise((resolve) => setTimeout(resolve, 500));
       
-      // 3. Siapkan kedua proses: update status DAN simpan ke riwayat
       const updateStatusPromise = axios.put(`/api/fpps/DIL-${nomorFpps}`, {
         status: "sampling",
       });
       const saveToRiwayatPromise = axios.post("/api/riwayat", riwayatPayload);
 
-      // 4. Jalankan keduanya secara paralel
       await Promise.all([updateStatusPromise, saveToRiwayatPromise, minimumDelay]);
 
-      // 5. Update pesan sukses
-      toast.success("Status FPPS diupdate dan surat pengujian berhasil disimpan ke riwayat.");
-      resetForm();
+      // 3. Ganti pesan sukses dan arahkan ke halaman riwayat
+      toast.success("Surat pengujian berhasil disimpan!");
+      router.push('/riwayat'); // <-- Navigasi ke halaman riwayat
+      
     } catch (error: any) {
       console.error("Save/Update Error:", error);
       toast.error(
@@ -190,7 +180,6 @@ export default function SuratPengujianPage() {
       </div>
 
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
-        {/* 6. Pastikan form memanggil fungsi handleSave yang sudah diupdate */}
         <FormPengujian
           nomorFpps={nomorFpps}
           setNomorFpps={setNomorFpps}
