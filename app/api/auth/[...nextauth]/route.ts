@@ -68,16 +68,20 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async jwt({ token, user }) {
+      // Saat login pertama kali, 'user' akan ada isinya
       if (user) {
         token.role = user.role;
         token.id = user.id;
+        token.fullName = user.fullName; // <-- TAMBAHKAN INI
       }
       return token;
     },
     async session({ session, token }) {
+      // Kirim data dari token ke sesi, agar bisa diakses di client/server
       if (session.user) {
         session.user.role = token.role as string;
         session.user.id = token.id as string;
+        session.user.fullName = token.fullName as string; // <-- TAMBAHKAN INI
       }
       return session;
     },
