@@ -373,6 +373,8 @@ export default function CoaPage() {
   const renderFormForTemplate = (template: any) => {
     const commonProps = {
       template,
+      // <-- PERUBAHAN DITAMBAHKAN DI SINI
+      nomorFppsPrefix: coaData?.nomorFpps?.replace("DIL-", "") || "",
       onTemplateChange: setEditingTemplate,
       onSave: addOrUpdateTemplate,
       onBack: () => {
