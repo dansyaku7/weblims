@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import connectToDatabase from "@/lib/db";
+import connectToDatabase from "@/lib/prisma";
 import Report from "@/models/Report";
 
 export async function GET(
