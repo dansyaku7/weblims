@@ -1,0 +1,81 @@
+// File: prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Model untuk User
+model User {
+  id        Int      @id @default(autoincrement())
+  fullName  String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // --- TAMBAHAN: Relasi ke Role ---
+  role      Role     @relation(fields: [roleId], references: [id])
+  roleId    Int
+}
+
+// --- TAMBAHAN: Model baru untuk Role ---
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique // Contoh: "SUPER_ADMIN", "ANALIS", "CLIENT"
+  users User[]
+}
+
+// ... (Model Fpps, Rincian, Report, dan Enum tetap sama) ...
+model Fpps {
+  id              Int       @id @default(autoincrement())
+  nomorFpps       String    @unique
+  nomorQuotation  String?
+  petugas         Json
+  namaPelanggan   String?
+  alamatPelanggan String?
+  noTelp          String?
+  tanggalMasuk    String?
+  kegiatan        String?
+  namaPpic        String?
+  emailPpic       String?
+  status          Status    @default(pendaftaran)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  rincian         Rincian[]
+}
+
+model Rincian {
+  id         Int     @id @default(autoincrement())
+  idRincian  String
+  area       String?
+  matriks    String?
+  parameter  String?
+  regulasi   String?
+  metode     String?
+  fpps       Fpps    @relation(fields: [fppsId], references: [id])
+  fppsId     Int
+}
+
+model Report {
+  id              String   @id
+  coverData       Json
+  activeTemplates Json
+  status          Status   @default(pendaftaran)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+enum Status {
+  pendaftaran
+  penyuratan
+  sampling
+  analisis
+  sertifikat
+  selesai
+}
