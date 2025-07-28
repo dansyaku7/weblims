@@ -1,23 +1,24 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Spinner from "./ui/Spinner"; // Spinner-mu tetap kita pakai
+import { useEffect, useState } from "react";
+import Spinner from "./ui/Spinner";
 
 export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
-  
-  // Gunakan useSession dengan opsi `required: true`
-  const { status } = useSession({
-    required: true,
-    onUnauthenticated() {
-      // Jika user tidak terotentikasi, paksa redirect ke halaman utama
-      router.push("/");
-    },
-  });
+  const [isChecking, setIsChecking] = useState(true);
 
-  // Selama sesi masih dicek (loading), tampilkan spinner
-  if (status === "loading") {
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      router.push("/");
+    } else {
+      setIsChecking(false);
+    }
+  }, [router]);
+
+  if (isChecking) {
     return (
       <div className="w-screen h-screen flex items-center justify-center">
         <Spinner />
@@ -25,6 +26,5 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // Jika status sudah 'authenticated', tampilkan konten halaman
   return <>{children}</>;
 };
