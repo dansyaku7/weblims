@@ -41,21 +41,11 @@ export default function SuratPengujianPage() {
   const documentRef = useRef<HTMLDivElement>(null);
   const { setIsLoading } = useLoading();
 
+  // useEffect untuk generate nomor surat (tidak ada perubahan)
   useEffect(() => {
     if (nomorFpps) {
       const bulanRomawi = [
-        "I",
-        "II",
-        "III",
-        "IV",
-        "V",
-        "VI",
-        "VII",
-        "VIII",
-        "IX",
-        "X",
-        "XI",
-        "XII",
+        "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII",
       ];
       const bulan = new Date().getMonth();
       const tahun = new Date().getFullYear();
@@ -67,6 +57,7 @@ export default function SuratPengujianPage() {
     }
   }, [nomorFpps]);
 
+  // useEffect untuk fetch data FPPS (tidak ada perubahan)
   useEffect(() => {
     if (!nomorFpps) {
       setPetugas([""]);
@@ -123,26 +114,50 @@ export default function SuratPengujianPage() {
     setSignatureData(initialSignatureData);
   };
 
-  const handleSaveStatus = async (e: React.FormEvent) => {
+  // --- PERUBAHAN UTAMA ADA DI FUNGSI INI ---
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nomorFpps) {
-      toast.error("Nomor FPPS harus diisi terlebih dahulu.");
+    if (!nomorFpps || !nomorSurat) {
+      toast.error("Nomor FPPS harus diisi untuk menghasilkan Nomor Surat.");
       return;
     }
 
     setIsLoading(true);
+
+    // 1. Kumpulkan semua data form yang relevan untuk disimpan
+    const formDataToSave = {
+      nomorFpps,
+      nomorSurat,
+      petugas,
+      sampelData,
+      signatureData,
+    };
+
+    // 2. Siapkan payload untuk dikirim ke API riwayat
+    const riwayatPayload = {
+      tipe: "surat_pengujian", // Gunakan tipe yang spesifik
+      nomor: nomorSurat,
+      judul: `Surat Pengujian - ${nomorSurat}`,
+      dataForm: formDataToSave,
+    };
+
     try {
       const minimumDelay = new Promise((resolve) => setTimeout(resolve, 500));
-      const updatePromise = axios.put(`/api/fpps/DIL-${nomorFpps}`, {
+      
+      // 3. Siapkan kedua proses: update status DAN simpan ke riwayat
+      const updateStatusPromise = axios.put(`/api/fpps/DIL-${nomorFpps}`, {
         status: "sampling",
       });
+      const saveToRiwayatPromise = axios.post("/api/riwayat", riwayatPayload);
 
-      await Promise.all([updatePromise, minimumDelay]);
+      // 4. Jalankan keduanya secara paralel
+      await Promise.all([updateStatusPromise, saveToRiwayatPromise, minimumDelay]);
 
-      toast.success("Status FPPS berhasil diubah menjadi 'Sampling'.");
+      // 5. Update pesan sukses
+      toast.success("Status FPPS diupdate dan surat pengujian berhasil disimpan ke riwayat.");
       resetForm();
     } catch (error: any) {
-      console.error("Update FPPS Status Error:", error);
+      console.error("Save/Update Error:", error);
       toast.error(
         error.response?.data?.message || "Terjadi kesalahan saat menyimpan."
       );
@@ -175,6 +190,7 @@ export default function SuratPengujianPage() {
       </div>
 
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
+        {/* 6. Pastikan form memanggil fungsi handleSave yang sudah diupdate */}
         <FormPengujian
           nomorFpps={nomorFpps}
           setNomorFpps={setNomorFpps}
@@ -185,7 +201,7 @@ export default function SuratPengujianPage() {
           setSampelData={setSampelData}
           signatureData={signatureData}
           setSignatureData={setSignatureData}
-          onSubmit={handleSaveStatus}
+          onSubmit={handleSave} 
           onPrint={handleRequestPrint}
         />
 
