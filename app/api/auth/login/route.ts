@@ -26,14 +26,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Password salah" }, { status: 401 });
     }
 
-    // --- PERUBAHAN DI BARIS INI ---
-    // Menggunakan NEXTAUTH_SECRET yang sudah kita standarkan
     const token = jwt.sign(
       { userId: user.id, role: user.role.name },
-      process.env.NEXTAUTH_SECRET!,
+      process.env.JWT_SECRET!,
       { expiresIn: "1d" }
     );
-    // -----------------------------
 
     return NextResponse.json({
       message: "Login berhasil",
