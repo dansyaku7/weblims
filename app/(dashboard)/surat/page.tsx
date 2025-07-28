@@ -53,18 +53,7 @@ export default function SuratPage() {
   useEffect(() => {
     if (nomorSurat.nomorFpps) {
       const bulanRomawi = [
-        "I",
-        "II",
-        "III",
-        "IV",
-        "V",
-        "VI",
-        "VII",
-        "VIII",
-        "IX",
-        "X",
-        "XI",
-        "XII",
+        "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII",
       ];
       const bulan = new Date().getMonth();
       const tahun = new Date().getFullYear();
@@ -95,12 +84,7 @@ export default function SuratPage() {
         setPetugas(result.formData.petugas || [""]);
       } catch (error) {
         console.error("Gagal mengambil data FPPS:", error);
-        setCustomerData({
-          hariTanggal: "",
-          namaPelanggan: "",
-          alamat: "",
-          contactPerson: "",
-        });
+        setCustomerData(initialCustomerData);
         setPetugas([""]);
       }
     };
@@ -117,26 +101,47 @@ export default function SuratPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!nomorSurat.nomorFpps) {
-      toast.error("Nomor FPPS harus diisi terlebih dahulu.");
+    if (!nomorSurat.nomorFpps || !nomorSurat.nomorStpsLengkap) {
+      toast.error("Nomor FPPS dan Nomor STPS harus terisi.");
       return;
     }
 
     setIsLoading(true);
+
+    // Kumpulkan semua data form menjadi satu objek
+    const formDataToSave = {
+      nomorSurat,
+      customerData,
+      petugas,
+      signatureData,
+    };
+    
+    // Siapkan payload untuk dikirim ke API riwayat
+    const riwayatPayload = {
+      tipe: "surat_tugas", // Tandai sebagai 'surat_tugas'
+      nomor: nomorSurat.nomorStpsLengkap,
+      judul: `Surat Tugas - ${customerData.namaPelanggan}`,
+      tanggal: new Date(),
+      dataForm: formDataToSave, // Simpan semua data form sebagai JSON
+    };
+
     try {
-      const minimumDelay = new Promise((resolve) => setTimeout(resolve, 500));
-      const updatePromise = axios.put(`/api/fpps/DIL-${nomorSurat.nomorFpps}`, {
+      // Kirim data ke API riwayat secara paralel dengan update status
+      const saveToRiwayatPromise = axios.post("/api/riwayat", riwayatPayload);
+      const updateStatusPromise = axios.put(`/api/fpps/DIL-${nomorSurat.nomorFpps}`, {
         status: "penyuratan",
       });
+      const minimumDelay = new Promise((resolve) => setTimeout(resolve, 500));
 
-      await Promise.all([updatePromise, minimumDelay]);
+      // Tunggu semua promise selesai
+      await Promise.all([saveToRiwayatPromise, updateStatusPromise, minimumDelay]);
 
-      toast.success("Status FPPS berhasil diubah menjadi 'Penyuratan'.");
+      toast.success("Dokumen berhasil disimpan ke riwayat dan status FPPS diupdate.");
       resetForm();
     } catch (error: any) {
-      console.error("Update FPPS Status Error:", error);
+      console.error("Save/Update Error:", error);
       toast.error(
-        error.response?.data?.message || "Gagal memperbarui status FPPS."
+        error.response?.data?.message || "Gagal menyimpan data atau memperbarui status."
       );
     } finally {
       setIsLoading(false);

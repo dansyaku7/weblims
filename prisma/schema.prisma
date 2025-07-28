@@ -79,3 +79,17 @@ enum Status {
   sertifikat
   selesai
 }
+
+model RiwayatDokumen {
+  id        String   @id @default(cuid())
+  tipe      String   // Nanti akan berisi "surat_tugas", "berita_acara", dll.
+  nomor     String   @unique
+  judul     String
+  tanggal   DateTime
+  
+  // 'Json' untuk menyimpan semua data form yang fleksibel
+  dataForm  Json     
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
