@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { AuthGuard } from "@/components/AuthGuard";
 import { AppSidebar } from "@/components/app-sidebar";
 // HAPUS BARIS INI: import { AuthProvider } from "@/components/context/AuthContext";
