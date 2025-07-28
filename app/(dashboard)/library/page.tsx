@@ -12,7 +12,7 @@ export default async function DataLibraryPage() {
   // 1. Ambil data sesi user yang sedang login di server
   const session = await getServerSession(authOptions);
   console.log("SESSION DATA:", session);
-  const showCustomerName = session?.user?.role !== "ANALIS";
+  const showCustomerName = session?.user?.role !== "analis";
   // ------------------------------------
 
   return (
