@@ -17,11 +17,9 @@ import {
   ChevronLeft,
   Save,
   FileSearch,
-  Settings, // <-- Import Settings
 } from "lucide-react";
 import { nanoid } from "nanoid";
 import { defaultHeatStressRow } from "../data/heatstress-data";
-import { Switch } from "@/components/ui/switch"; // <-- Import Switch
 
 interface HeatStressResultRow {
   id: string;
@@ -37,11 +35,9 @@ interface SampleInfo {
   sampleNo: string;
 }
 
-// 1. TAMBAHKAN showKanLogo
 interface HeatStressTemplate {
   sampleInfo: SampleInfo;
   results: HeatStressResultRow[];
-  showKanLogo: boolean; // <-- Tambahkan ini
 }
 
 interface HeatStressFormProps {
@@ -93,7 +89,7 @@ export function HeatStressForm({
     const newResults = template.results.filter((_, i) => i !== index);
     onTemplateChange({ ...template, results: newResults });
   };
-  
+
   const handleSampleNoSuffixChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -244,33 +240,6 @@ export function HeatStressForm({
             </Button>
           </div>
         </div>
-
-        {/* --- 2. BAGIAN INI DITAMBAHKAN --- */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium border-b pb-3 flex items-center">
-            <Settings className="w-4 h-4 mr-2" />
-            Pengaturan Halaman
-          </h3>
-          <div className="flex items-center justify-between rounded-lg border bg-muted/30 p-4">
-            <div className="space-y-0.5">
-              <Label htmlFor="kan-logo-switch" className="text-base">
-                Tampilkan Logo KAN
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Aktifkan untuk menampilkan logo KAN di header halaman ini.
-              </p>
-            </div>
-            <Switch
-              id="kan-logo-switch"
-              checked={template.showKanLogo}
-              onCheckedChange={(value: boolean) =>
-                onTemplateChange({ ...template, showKanLogo: value })
-              }
-            />
-          </div>
-        </div>
-        {/* ----------------------------- */}
-
       </CardContent>
       <CardFooter className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
         <Button
