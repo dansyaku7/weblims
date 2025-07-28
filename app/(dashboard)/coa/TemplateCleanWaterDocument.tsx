@@ -46,7 +46,7 @@ export const TemplateCleanWaterDocument = React.forwardRef<HTMLDivElement, { dat
                 ))}
               </tbody>
             </table>
-            <div className="mt-4 text-[8px]"><p className='font-bold'>Notes:</p><p>{'<'} : Less Than MDL (Method Detection Limit)</p><p>{sampleInfo.notes || '** Default Regulatory Note'}</p></div>
+            <div className="mt-4 text-[8px]"><p className='font-bold'>Notes:</p><p>{sampleInfo.notes || '** Default Regulatory Note'}</p></div>
           </main>
         </div>
       </div>

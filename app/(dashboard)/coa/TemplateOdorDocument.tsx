@@ -111,7 +111,6 @@ export const TemplateOdorDocument = React.forwardRef<HTMLDivElement, { data: any
 
             <div className="text-[8px] mt-4">
               <p className="font-bold">Notes:</p>
-              <p>{'<'} : Less Than MDL (Method Detection Limit)</p>
               <p>* : Accredited Parameters</p>
               <p>{regulatoryNote}</p>
             </div>
