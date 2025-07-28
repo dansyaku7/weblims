@@ -23,6 +23,7 @@ import {
   FileSearch,
 } from "lucide-react";
 
+// Interface tetap sama, karena 'name' sudah ada
 interface ParameterResult {
   name: string;
   category?: string;
@@ -79,7 +80,6 @@ export function WastewaterForm({
     value: string | boolean
   ) => {
     const newResults = [...template.results];
-    // Menggunakan logika dari versi remote yang lebih aman (immutable update)
     newResults[index] = { ...newResults[index], [field]: value };
     onTemplateChange({ ...template, results: newResults });
   };
@@ -182,7 +182,6 @@ export function WastewaterForm({
           </h3>
           <div className="space-y-2 pt-2">
             {template.results.map((param: ParameterResult, index: number) => {
-              // Mengambil cara yang lebih aman untuk menentukan visibilitas dari versi remote
               const isVisible = param.isVisible !== false;
 
               return (
@@ -194,18 +193,36 @@ export function WastewaterForm({
                   )}
                   <div className="border rounded-lg p-4 space-y-4 bg-muted/20">
                     <div className="flex justify-between items-center">
-                      <p className="font-semibold text-foreground">
-                        {param.name}
-                      </p>
+                      
+                      {/* --- BAGIAN INI YANG DIUBAH --- */}
+                      <div className="flex-grow">
+                        <Label
+                          htmlFor={`param-name-${index}`}
+                          className="text-sm font-medium text-foreground flex items-center mb-1"
+                        >
+                          Parameter
+                          <Pencil className="w-3 h-3 ml-1.5 text-muted-foreground" />
+                        </Label>
+                        <Input
+                          id={`param-name-${index}`}
+                          value={param.name}
+                          onChange={(e) =>
+                            handleParameterChange(index, "name", e.target.value)
+                          }
+                          className="bg-transparent border border-input text-foreground font-semibold"
+                          placeholder="Nama Parameter"
+                        />
+                      </div>
+                      {/* ----------------------------- */}
+
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() =>
                           handleParameterChange(index, "isVisible", !isVisible)
                         }
-                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground ml-4 self-end mb-1"
                       >
-                        {/* Menggunakan logika ikon dari versimu yang lebih baik */}
                         {isVisible ? (
                           <EyeOff className="w-4 h-4" />
                         ) : (
