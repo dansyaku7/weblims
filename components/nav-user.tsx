@@ -23,7 +23,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "./context/AuthContext";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
