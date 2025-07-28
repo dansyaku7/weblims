@@ -4,6 +4,8 @@ import { getAllReports } from "@/lib/report-service";
 import { ReportListClient } from "./components/ReportListClient";
 import { getUserFromSession } from "@/lib/session";
 
+export const dynamic = 'force-dynamic';
+
 export default async function DataLibraryPage() {
   const user = await getUserFromSession();
   const userRole = user?.role;

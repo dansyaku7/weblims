@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { Printer, Save } from "lucide-react";
 import { useLoading } from "@/components/context/LoadingContext";
 
+export const dynamic = 'force-dynamic';
+
 // Interface untuk data BAPS
 interface BapsData {
   nomorFpps: string;

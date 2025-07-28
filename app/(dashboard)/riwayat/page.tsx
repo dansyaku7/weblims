@@ -1,6 +1,8 @@
 import { getAllRiwayat } from "@/lib/riwayat-service";
 import { RiwayatListClient } from "./components/RiwayatListClient";
 
+export const dynamic = 'force-dynamic';
+
 export default async function RiwayatPage() {
   // Ambil data langsung di server
   const result = await getAllRiwayat();
