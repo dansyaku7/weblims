@@ -28,11 +28,16 @@ const formatStatusText = (status: string) => {
   return status.charAt(0).toUpperCase() + status.slice(1);
 };
 
+// --- PERUBAHAN DIMULAI DI SINI ---
 export function ReportListClient({
   initialReportsResult,
+  showCustomerName, // 1. Terima props baru
 }: {
   initialReportsResult: any;
+  showCustomerName: boolean; // Definisikan tipenya
 }) {
+// ------------------------------------
+
   const [reports, setReports] = useState(
     initialReportsResult.success ? initialReportsResult.data : []
   );
@@ -131,7 +136,8 @@ export function ReportListClient({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nama Customer</TableHead>
+                {/* 2. Tampilkan/sembunyikan header kolom */}
+                {showCustomerName && <TableHead>Nama Customer</TableHead>}
                 <TableHead>No. FPPS</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Aksi</TableHead>
@@ -141,9 +147,14 @@ export function ReportListClient({
               {reports.length > 0 ? (
                 reports.map((report: any) => (
                   <TableRow key={report.id}>
-                    <TableCell className="font-medium">
-                      {report.coverData?.customer || "-"}
-                    </TableCell>
+                    
+                    {/* 3. Tampilkan/sembunyikan sel data */}
+                    {showCustomerName && (
+                      <TableCell className="font-medium">
+                        {report.coverData?.customer || "-"}
+                      </TableCell>
+                    )}
+                    
                     <TableCell>{report.coverData?.nomorFpps || "-"}</TableCell>
                     <TableCell>
                       <Badge
@@ -203,7 +214,7 @@ export function ReportListClient({
                 <TableRow>
                   <TableCell
                     key="empty-row"
-                    colSpan={4}
+                    colSpan={showCustomerName ? 4 : 3} // Sesuaikan colSpan
                     className="text-center h-24"
                   >
                     Belum ada laporan yang tersimpan.
