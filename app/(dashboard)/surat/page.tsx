@@ -63,7 +63,7 @@ export default function SuratPage() {
       const bulan = new Date().getMonth();
       const tahun = new Date().getFullYear();
       const last3 = nomorSurat.nomorFpps.slice(-3);
-      const formattedNomor = `${last3[0]}.${last3.slice(1)}`;
+      const formattedNomor = last3;
       setNomorSurat((prev) => ({
         ...prev,
         nomorStpsLengkap: `${formattedNomor}/DIL/${bulanRomawi[bulan]}/${tahun}/STPS`,
