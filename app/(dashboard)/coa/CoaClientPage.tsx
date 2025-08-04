@@ -45,7 +45,7 @@ import { NonSSEForm } from "./components/NonSSEForm";
 import { NoiseRegulationSelection } from "./components/NoiseRegulationSelection";
 import { NoiseForm } from "./components/NoiseForm";
 import { QrCodeModal } from "./components/QrCodeModal";
-import { NektonForm } from "./components/NektonForm"; // <-- 1. IMPORT BARU
+import { NektonForm } from "./components/NektonForm";
 
 import { CoaCoverDocument } from "./CoaCoverDocument";
 import { TemplateIlluminationDocument } from "./TemplateIlluminationDocument";
@@ -61,7 +61,7 @@ import { TemplateSSSEDocument } from "./TemplateSSSEDocument";
 import { TemplateISPUDocument } from "./TemplateISPUDocument";
 import { TemplateNonSSEDocument } from "./TemplateNonSSEDocument";
 import { TemplateNoiseDocument } from "./TemplateNoiseDocument";
-import { TemplateNektonDocument } from "./TemplateNektonDocument"; // <-- 2. IMPORT BARU
+import { TemplateNektonDocument } from "./TemplateNektonDocument";
 
 import { defaultIlluminationRow } from "./data/illumination-data";
 import {
@@ -85,7 +85,7 @@ import * as ssseData from "./data/ssse-data";
 import * as ispuData from "./data/ispu-data";
 import * as nonsseData from "./data/non-sse-data";
 import * as noiseData from "./data/noise-data";
-import * as nektonData from "./data/nekton-data"; // <-- 3. IMPORT BARU
+import * as nektonData from "./data/nekton-data";
 import { useLoading } from "@/components/context/LoadingContext";
 
 const coaTemplates = [
@@ -102,7 +102,7 @@ const coaTemplates = [
   { id: "ispu", name: "Template CoA ISPU" },
   { id: "nonsse", name: "Template CoA Non-SSE" },
   { id: "noise", name: "Template CoA Noise" },
-  { id: "nekton", name: "Template CoA Nekton" }, // <-- 4. TAMBAHKAN DI SINI
+  { id: "nekton", name: "Template CoA Nekton" },
 ];
 
 type ViewState =
@@ -374,6 +374,63 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
 
   const totalPages = 1 + activeTemplates.length;
 
+  const handleSelectTemplate = (type: string) => {
+    const baseTemplate = {
+      id: nanoid(),
+      templateType: type,
+      showKanLogo: true,
+    };
+
+    let newTemplate;
+
+    // Data mapping untuk template yang bisa dibuat langsung
+    const directCreateTemplates: { [key: string]: any } = {
+      illumination: {
+        results: [{ ...defaultIlluminationRow, id: nanoid() }],
+        sampleInfo: { sampleNo: "", samplingLocation: "", samplingTime: "" },
+      },
+      heatstress: {
+        results: [{ ...defaultHeatStressRow, id: nanoid() }],
+        sampleInfo: { ...defaultHeatStressSampleInfo },
+      },
+      ispu: {
+        results: ispuData.defaultISPUParameters.map((p) => ({ ...p })),
+        sampleInfo: { ...ispuData.defaultISPUSampleInfo },
+      },
+      nonsse: {
+        results: [{ ...nonsseData.defaultNonSSERow, id: nanoid() }],
+        sampleInfo: { ...nonsseData.defaultNonSSESampleInfo },
+      },
+      nekton: {
+        ...nektonData.defaultNektonTemplate,
+      },
+    };
+
+    // Daftar template yang butuh layar pemilihan regulasi
+    const needsRegulationSelection = [
+      "odor", "wastewater", "cleanwater", "workplaceair",
+      "surfacewater", "vibration", "airambient", "ssse", "noise",
+    ];
+
+    if (directCreateTemplates[type]) {
+      // Untuk template yang dibuat langsung
+      newTemplate = {
+        ...baseTemplate,
+        ...directCreateTemplates[type],
+      };
+      setEditingTemplate(newTemplate);
+    } else if (needsRegulationSelection.includes(type)) {
+      // Untuk template yang butuh pemilihan regulasi
+      setEditingTemplate({ templateType: type });
+    } else {
+      // Fallback jika tipe template tidak dikenali
+      toast.error(`Tipe template "${type}" tidak dikenali.`);
+      return;
+    }
+
+    setView("form");
+  };
+
   const renderFormForTemplate = (template: any) => {
     const commonProps = {
       template,
@@ -422,7 +479,7 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
         previewComponent = <TemplateNonSSEDocument data={previewData} />;
       else if (template.templateType === "noise")
         previewComponent = <TemplateNoiseDocument data={previewData} />;
-      else if (template.templateType === "nekton") // <-- 5. TAMBAHKAN KONDISI PREVIEW
+      else if (template.templateType === "nekton")
         previewComponent = <TemplateNektonDocument data={previewData} />;
       if (previewComponent) handlePreview(previewComponent);
     };
@@ -453,7 +510,7 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
         return <NonSSEForm {...commonProps} onPreview={previewHandler} />;
       case "noise":
         return <NoiseForm {...commonProps} onPreview={previewHandler} />;
-      case "nekton": // <-- 6. TAMBAHKAN CASE RENDER FORM
+      case "nekton":
         return <NektonForm {...commonProps} onPreview={previewHandler} />;
       default:
         return <p>Form untuk template ini tidak ditemukan.</p>;
@@ -523,76 +580,7 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
         return (
           <TemplateSelection
             templates={coaTemplates}
-            onSelectTemplate={(type) => {
-              let newTemplate;
-              const baseTemplate = {
-                id: nanoid(),
-                templateType: type,
-                showKanLogo: true,
-              };
-
-              // --- 7. LOGIKA PEMBUATAN TEMPLATE BARU ---
-              if (type === "nekton") {
-                newTemplate = {
-                  ...baseTemplate,
-                  ...nektonData.defaultNektonTemplate,
-                };
-                setEditingTemplate(newTemplate);
-                setView("form");
-                return;
-              }
-              // ------------------------------------
-
-              if (
-                [
-                  "odor",
-                  "wastewater",
-                  "cleanwater",
-                  "workplaceair",
-                  "surfacewater",
-                  "vibration",
-                  "airambient",
-                  "ssse",
-                  "noise",
-                ].includes(type)
-              ) {
-                setEditingTemplate({ templateType: type });
-              } else {
-                if (type === "illumination") {
-                  newTemplate = {
-                    ...baseTemplate,
-                    results: [{ ...defaultIlluminationRow, id: nanoid() }],
-                    sampleInfo: {
-                      sampleNo: "",
-                      samplingLocation: "",
-                      samplingTime: "",
-                    },
-                  };
-                } else if (type === "heatstress") {
-                  newTemplate = {
-                    ...baseTemplate,
-                    results: [{ ...defaultHeatStressRow, id: nanoid() }],
-                    sampleInfo: { ...defaultHeatStressSampleInfo },
-                  };
-                } else if (type === "ispu") {
-                  newTemplate = {
-                    ...baseTemplate,
-                    results: ispuData.defaultISPUParameters.map((p) => ({
-                      ...p,
-                    })),
-                    sampleInfo: { ...ispuData.defaultISPUSampleInfo },
-                  };
-                } else if (type === "nonsse") {
-                  newTemplate = {
-                    ...baseTemplate,
-                    results: [{ ...nonsseData.defaultNonSSERow, id: nanoid() }],
-                    sampleInfo: { ...nonsseData.defaultNonSSESampleInfo },
-                  };
-                }
-                setEditingTemplate(newTemplate);
-              }
-              setView("form");
-            }}
+            onSelectTemplate={handleSelectTemplate}
             onBack={() => setView("dashboard")}
           />
         );
@@ -967,7 +955,6 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
                 {template.templateType === "noise" && (
                   <TemplateNoiseDocument data={fullTemplateData} />
                 )}
-                {/* --- 8. TAMBAHKAN KONDISI PRINT --- */}
                 {template.templateType === "nekton" && (
                   <TemplateNektonDocument data={fullTemplateData} />
                 )}
@@ -1039,4 +1026,5 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
         }
       `}</style>
     </>
-  )
+  );
+}
