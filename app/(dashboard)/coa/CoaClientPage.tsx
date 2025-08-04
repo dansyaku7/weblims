@@ -45,6 +45,7 @@ import { NonSSEForm } from "./components/NonSSEForm";
 import { NoiseRegulationSelection } from "./components/NoiseRegulationSelection";
 import { NoiseForm } from "./components/NoiseForm";
 import { QrCodeModal } from "./components/QrCodeModal";
+import { NektonForm } from "./components/NektonForm"; // <-- 1. IMPORT BARU
 
 import { CoaCoverDocument } from "./CoaCoverDocument";
 import { TemplateIlluminationDocument } from "./TemplateIlluminationDocument";
@@ -60,6 +61,7 @@ import { TemplateSSSEDocument } from "./TemplateSSSEDocument";
 import { TemplateISPUDocument } from "./TemplateISPUDocument";
 import { TemplateNonSSEDocument } from "./TemplateNonSSEDocument";
 import { TemplateNoiseDocument } from "./TemplateNoiseDocument";
+import { TemplateNektonDocument } from "./TemplateNektonDocument"; // <-- 2. IMPORT BARU
 
 import { defaultIlluminationRow } from "./data/illumination-data";
 import {
@@ -83,6 +85,7 @@ import * as ssseData from "./data/ssse-data";
 import * as ispuData from "./data/ispu-data";
 import * as nonsseData from "./data/non-sse-data";
 import * as noiseData from "./data/noise-data";
+import * as nektonData from "./data/nekton-data"; // <-- 3. IMPORT BARU
 import { useLoading } from "@/components/context/LoadingContext";
 
 const coaTemplates = [
@@ -99,6 +102,7 @@ const coaTemplates = [
   { id: "ispu", name: "Template CoA ISPU" },
   { id: "nonsse", name: "Template CoA Non-SSE" },
   { id: "noise", name: "Template CoA Noise" },
+  { id: "nekton", name: "Template CoA Nekton" }, // <-- 4. TAMBAHKAN DI SINI
 ];
 
 type ViewState =
@@ -373,7 +377,6 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
   const renderFormForTemplate = (template: any) => {
     const commonProps = {
       template,
-      // <-- PERUBAHAN DITAMBAHKAN DI SINI
       nomorFppsPrefix: coaData?.nomorFpps?.replace("DIL-", "") || "",
       onTemplateChange: setEditingTemplate,
       onSave: addOrUpdateTemplate,
@@ -419,6 +422,8 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
         previewComponent = <TemplateNonSSEDocument data={previewData} />;
       else if (template.templateType === "noise")
         previewComponent = <TemplateNoiseDocument data={previewData} />;
+      else if (template.templateType === "nekton") // <-- 5. TAMBAHKAN KONDISI PREVIEW
+        previewComponent = <TemplateNektonDocument data={previewData} />;
       if (previewComponent) handlePreview(previewComponent);
     };
     switch (template.templateType) {
@@ -448,6 +453,8 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
         return <NonSSEForm {...commonProps} onPreview={previewHandler} />;
       case "noise":
         return <NoiseForm {...commonProps} onPreview={previewHandler} />;
+      case "nekton": // <-- 6. TAMBAHKAN CASE RENDER FORM
+        return <NektonForm {...commonProps} onPreview={previewHandler} />;
       default:
         return <p>Form untuk template ini tidak ditemukan.</p>;
     }
@@ -523,6 +530,19 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
                 templateType: type,
                 showKanLogo: true,
               };
+
+              // --- 7. LOGIKA PEMBUATAN TEMPLATE BARU ---
+              if (type === "nekton") {
+                newTemplate = {
+                  ...baseTemplate,
+                  ...nektonData.defaultNektonTemplate,
+                };
+                setEditingTemplate(newTemplate);
+                setView("form");
+                return;
+              }
+              // ------------------------------------
+
               if (
                 [
                   "odor",
@@ -947,6 +967,10 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
                 {template.templateType === "noise" && (
                   <TemplateNoiseDocument data={fullTemplateData} />
                 )}
+                {/* --- 8. TAMBAHKAN KONDISI PRINT --- */}
+                {template.templateType === "nekton" && (
+                  <TemplateNektonDocument data={fullTemplateData} />
+                )}
               </React.Fragment>
             );
           })}
@@ -1015,5 +1039,4 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
         }
       `}</style>
     </>
-  );
-}
+  )
