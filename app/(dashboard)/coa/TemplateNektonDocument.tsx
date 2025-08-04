@@ -6,12 +6,12 @@ import { Logo } from '@/components/logo';
 import { NektonDataSet } from './data/nekton-data';
 
 // Helper component untuk merender satu set data (Upstream/Downstream)
-const NektonDataSetComponent = ({ title, dataSet, sampleInfo }: { title: string, dataSet: NektonDataSet, sampleInfo: any }) => {
+const NektonDataSetComponent = ({ dataSet, sampleInfo }: { dataSet: NektonDataSet, sampleInfo: any }) => {
   if (!dataSet) return null;
 
   return (
-    <>
-      <table className="w-full border-collapse border-2 border-black mb-4">
+    <div className="mb-6">
+      <table className="w-full border-collapse border-2 border-black mb-1 text-[8px]">
         <thead>
           <tr className="bg-gray-200 font-bold text-center">
             <th className="border border-black p-1">Sample No.</th>
@@ -27,7 +27,7 @@ const NektonDataSetComponent = ({ title, dataSet, sampleInfo }: { title: string,
         <tbody>
           <tr>
             <td className="border border-black p-1 text-center">{sampleInfo.sampleNo || '-'}</td>
-            <td className="border border-black p-1 text-center">{title}</td>
+            <td className="border border-black p-1 text-center">{dataSet.locationName || '-'}</td>
             <td className="border border-black p-1 text-center">Microorganism</td>
             <td className="border border-black p-1 text-center">{sampleInfo.samplingDate || '-'}</td>
             <td className="border border-black p-1 text-center">{sampleInfo.samplingTime || '-'}</td>
@@ -38,45 +38,41 @@ const NektonDataSetComponent = ({ title, dataSet, sampleInfo }: { title: string,
         </tbody>
       </table>
       
-      <table className="w-full border-collapse border-2 border-black text-[9px] mb-4">
+      <table className="w-full border-collapse border-2 border-black text-[9px]">
         <thead>
           <tr className="bg-gray-200 font-bold">
             <th className="border border-black p-1 w-8">No</th>
-            <th className="border border-black p-1 text-left">INDIVIDU</th>
+            <th className="border border-black p-1 text-left" colSpan={2}>INDIVIDU NEKTON</th>
             <th className="border border-black p-1 w-40">Abundance (Individu/m²)</th>
           </tr>
         </thead>
         <tbody>
-          <tr className="font-bold"><td colSpan={3} className="p-1 pl-2">NEKTON</td></tr>
           {dataSet.results.map((param, index, arr) => {
             const isFirstInCategory = index === 0 || arr[index-1]?.category !== param.category;
-            const categoryLetter = String.fromCharCode(65 + arr.slice(0, index).filter((p, i) => i === 0 || p.category !== arr[i-1].category).length);
+            const uniqueCategories = [...new Set(arr.slice(0, index + 1).map(p => p.category))];
+            const categoryIndex = uniqueCategories.indexOf(param.category);
+            const categoryLetter = String.fromCharCode(65 + categoryIndex);
             return (
               <React.Fragment key={param.id}>
                 {param.category && isFirstInCategory && (
                   <tr className="font-bold">
                     <td className="border border-black p-1 text-center">{categoryLetter}</td>
-                    <td colSpan={2} className="p-1 pl-2">{param.category}</td>
+                    <td colSpan={3} className="p-1 pl-2 border-r border-black">{param.category}</td>
                   </tr>
                 )}
                 <tr>
                   <td className="border border-black p-1 text-center">{index + 1}</td>
-                  <td className="border border-black p-1 pl-8">{param.species}</td>
+                  <td className="border-r border-black p-1 pl-8" colSpan={2}>{param.species}</td>
                   <td className="border border-black p-1 text-center">{param.abundance || '-'}</td>
                 </tr>
               </React.Fragment>
             )
           })}
-        </tbody>
-      </table>
-      
-      <table className="w-full border-collapse border-2 border-black text-[9px]">
-        <tbody>
-          <tr><td className="border border-black p-1 font-bold">TOTAL (N)</td><td className="border border-black p-1 text-center">{dataSet.summary.totalN || '-'}</td></tr>
-          <tr><td className="border border-black p-1 font-bold">Taxa Total (S)</td><td className="border border-black p-1 text-center">{dataSet.summary.taxaTotalS || '-'}</td></tr>
-          <tr><td className="border border-black p-1 font-bold">Diversity Index, Shannon-Wiener (H') = -∑Pi ln Pi</td><td className="border border-black p-1 text-center">{dataSet.summary.diversityH || '-'}</td></tr>
-          <tr><td className="border border-black p-1 font-bold">Equitability Index (E) = H'/Ln S</td><td className="border border-black p-1 text-center">{dataSet.summary.equitabilityE || '-'}</td></tr>
-          <tr><td className="border border-black p-1 font-bold">Domination Index (D) = ∑(Ni/N)²</td><td className="border border-black p-1 text-center">{dataSet.summary.dominationD || '-'}</td></tr>
+          <tr className="font-bold bg-gray-100"><td colSpan={3} className="border border-black p-1 text-right pr-4">TOTAL (N)</td><td className="border border-black p-1 text-center">{dataSet.summary.totalN || '-'}</td></tr>
+          <tr className="font-bold bg-gray-100"><td colSpan={3} className="border border-black p-1 text-right pr-4">Taxa Total (S)</td><td className="border border-black p-1 text-center">{dataSet.summary.taxaTotalS || '-'}</td></tr>
+          <tr className="font-bold bg-gray-100"><td colSpan={3} className="border border-black p-1 text-right pr-4">Diversity Index, Shannon-Wiener (H') = -∑Pi ln Pi</td><td className="border border-black p-1 text-center">{dataSet.summary.diversityH || '-'}</td></tr>
+          <tr className="font-bold bg-gray-100"><td colSpan={3} className="border border-black p-1 text-right pr-4">Equitability Index (E) = H'/Ln S</td><td className="border border-black p-1 text-center">{dataSet.summary.equitabilityE || '-'}</td></tr>
+          <tr className="font-bold bg-gray-100"><td colSpan={3} className="border border-black p-1 text-right pr-4">Domination Index (D) = ∑(Ni/N)²</td><td className="border border-black p-1 text-center">{dataSet.summary.dominationD || '-'}</td></tr>
         </tbody>
       </table>
     </>
@@ -85,7 +81,7 @@ const NektonDataSetComponent = ({ title, dataSet, sampleInfo }: { title: string,
 
 export const TemplateNektonDocument = React.forwardRef<HTMLDivElement, { data: any }>(
   ({ data }, ref) => {
-    const { upstream, downstream, sampleInfo, certificateNo, showKanLogo, totalPages, pageNumber } = data;
+    const { dataSets, sampleInfo, certificateNo, showKanLogo, totalPages, pageNumber } = data;
 
     return (
       <div ref={ref} className="p-10 font-serif text-black bg-white relative" style={{ width: '210mm', minHeight: '297mm' }}>
@@ -112,13 +108,37 @@ export const TemplateNektonDocument = React.forwardRef<HTMLDivElement, { data: a
               <p className="text-xs">Certificate No. {certificateNo || 'DIL-AABBCCDD-COA'}</p>
             </div>
             
-            <NektonDataSetComponent title="Upstream" dataSet={upstream} sampleInfo={sampleInfo} />
-            <div className="my-6"></div>
-            <NektonDataSetComponent title="Downstream" dataSet={downstream} sampleInfo={sampleInfo} />
+            {dataSets.map((ds: NektonDataSet, index: number) => (
+                <div key={ds.id} className={index > 0 ? "mt-6" : ""}>
+                    <NektonDataSetComponent dataSet={ds} sampleInfo={sampleInfo} />
+                </div>
+            ))}
             
-            <div className="mt-4 text-[8px] whitespace-pre-wrap">
-              <p className='font-bold'>Notes:</p>
-              <p>{sampleInfo.notes || 'Default criteria note...'}</p>
+            <div className="mt-4 text-[8px] space-y-4">
+                <table className="w-full border-collapse border border-black">
+                    <thead><tr className="font-bold bg-gray-200"><td className="border border-black p-1" colSpan={2}>Diversity Index, Shannon-Wiener Value Criteria</td></tr></thead>
+                    <tbody>
+                        <tr><td className="border border-black p-1">H’ &lt; 1</td><td className="border border-black p-1">Low Diversity</td></tr>
+                        <tr><td className="border border-black p-1">1 &lt; H’ &lt; 3</td><td className="border border-black p-1">Medium Diversity</td></tr>
+                        <tr><td className="border border-black p-1">H’ &gt; 3</td><td className="border border-black p-1">High Diversity</td></tr>
+                    </tbody>
+                </table>
+                 <table className="w-full border-collapse border border-black">
+                    <thead><tr className="font-bold bg-gray-200"><td className="border border-black p-1" colSpan={2}>Equitability Index Value Criteria</td></tr></thead>
+                    <tbody>
+                        <tr><td className="border border-black p-1">E &lt; 0.4</td><td className="border border-black p-1">Low Equitability</td></tr>
+                        <tr><td className="border border-black p-1">0.4 &lt; E &lt; 0.6</td><td className="border border-black p-1">Medium Equitability</td></tr>
+                        <tr><td className="border border-black p-1">E &gt; 0.6</td><td className="border border-black p-1">High Equitability</td></tr>
+                    </tbody>
+                </table>
+                 <table className="w-full border-collapse border border-black">
+                    <thead><tr className="font-bold bg-gray-200"><td className="border border-black p-1" colSpan={2}>Domination Index Value Criteria</td></tr></thead>
+                    <tbody>
+                        <tr><td className="border border-black p-1">0.00 &lt; D &lt; 0.50</td><td className="border border-black p-1">Low Domination</td></tr>
+                        <tr><td className="border border-black p-1">0.50 &lt; D &lt; 0.75</td><td className="border border-black p-1">Medium Domination</td></tr>
+                        <tr><td className="border border-black p-1">0.75 &lt; D &lt; 1</td><td className="border border-black p-1">High Domination</td></tr>
+                    </tbody>
+                </table>
             </div>
           </main>
         </div>

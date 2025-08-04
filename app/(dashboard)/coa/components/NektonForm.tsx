@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ChevronLeft, Save, FileSearch, Settings, PlusCircle, Trash2 } from "lucide-react";
 import { nanoid } from "nanoid";
-import { NektonDataSet, NektonResultRow, defaultNektonRow } from "../data/nekton-data";
+import { NektonDataSet, NektonResultRow, defaultNektonRow, defaultNektonDataSet } from "../data/nekton-data";
 
 // Definisikan tipe data untuk template Nekton
 interface NektonTemplate {
@@ -19,8 +19,7 @@ interface NektonTemplate {
     samplingTime: string;
     notes: string;
   };
-  upstream: NektonDataSet;
-  downstream: NektonDataSet;
+  dataSets: NektonDataSet[];
   showKanLogo: boolean;
 }
 
@@ -64,94 +63,100 @@ export function NektonForm({
     ? template.sampleInfo.sampleNo.substring(nomorFppsPrefix.length)
     : "";
 
-  // --- HANDLER UNTUK DATA SPESIFIK NEKTON (UPSTREAM/DOWNSTREAM) ---
-  const handleDataSetChange = (
-    stream: 'upstream' | 'downstream',
-    field: 'results' | 'summary',
-    value: any
-  ) => {
-    onTemplateChange({
-      ...template,
-      [stream]: {
-        ...template[stream],
-        [field]: value,
-      },
-    });
+  // --- HANDLER UNTUK MENGELOLA DAFTAR LOKASI ---
+  const handleDataSetChange = (index: number, updatedDataSet: NektonDataSet) => {
+    const newDataSets = [...template.dataSets];
+    newDataSets[index] = updatedDataSet;
+    onTemplateChange({ ...template, dataSets: newDataSets });
   };
 
-  const handleResultRowChange = (
-    stream: 'upstream' | 'downstream',
-    index: number,
-    field: keyof Omit<NektonResultRow, 'id'>,
-    value: string
-  ) => {
-    const newResults = [...template[stream].results];
-    newResults[index] = { ...newResults[index], [field]: value };
-    handleDataSetChange(stream, 'results', newResults);
+  const handleAddDataSet = () => {
+    const newDataSet = { ...defaultNektonDataSet, id: nanoid(), locationName: 'Downstream' }; // Contoh nama default
+    onTemplateChange({ ...template, dataSets: [...template.dataSets, newDataSet] });
   };
 
-  const handleAddRow = (stream: 'upstream' | 'downstream') => {
-    const newRow = { ...defaultNektonRow, id: nanoid() };
-    const newResults = [...template[stream].results, newRow];
-    handleDataSetChange(stream, 'results', newResults);
+  const handleRemoveDataSet = (id: string) => {
+    const newDataSets = template.dataSets.filter((ds) => ds.id !== id);
+    onTemplateChange({ ...template, dataSets: newDataSets });
   };
 
-  const handleRemoveRow = (stream: 'upstream' | 'downstream', id: string) => {
-    const newResults = template[stream].results.filter((row) => row.id !== id);
-    handleDataSetChange(stream, 'results', newResults);
-  };
+  // Komponen render untuk satu set data (satu lokasi)
+  const DataSetForm = ({ dataSet, index }: { dataSet: NektonDataSet, index: number }) => {
+    const handleResultRowChange = (rowIndex: number, field: keyof Omit<NektonResultRow, 'id'>, value: string) => {
+      const newResults = [...dataSet.results];
+      newResults[rowIndex] = { ...newResults[rowIndex], [field]: value };
+      handleDataSetChange(index, { ...dataSet, results: newResults });
+    };
 
-  const handleSummaryChange = (
-    stream: 'upstream' | 'downstream',
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const { name, value } = e.target;
-    const newSummary = { ...template[stream].summary, [name]: value };
-    handleDataSetChange(stream, 'summary', newSummary);
-  };
+    const handleAddRow = () => {
+      const newRow = { ...defaultNektonRow, id: nanoid() };
+      handleDataSetChange(index, { ...dataSet, results: [...dataSet.results, newRow] });
+    };
 
-  // Komponen render untuk satu set data (Upstream/Downstream)
-  const renderDataSetForm = (stream: 'upstream' | 'downstream', title: string) => {
-    const dataSet = template[stream];
+    const handleRemoveRow = (rowId: string) => {
+      const newResults = dataSet.results.filter((row) => row.id !== rowId);
+      handleDataSetChange(index, { ...dataSet, results: newResults });
+    };
+
+    const handleSummaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      handleDataSetChange(index, { ...dataSet, summary: { ...dataSet.summary, [name]: value } });
+    };
+
     return (
-      <div className="space-y-6">
-        <h3 className="text-xl font-semibold border-b pb-3">{title}</h3>
-        {dataSet.results.map((row, index) => (
+      <div className="space-y-6 border-t pt-6 mt-6">
+        <div className="flex justify-between items-center">
+            <div className="flex-grow space-y-2">
+                 <Label>Nama Lokasi Pengujian #{index + 1}</Label>
+                 <Input 
+                    value={dataSet.locationName}
+                    onChange={(e) => handleDataSetChange(index, {...dataSet, locationName: e.target.value})}
+                    className="text-xl font-semibold"
+                 />
+            </div>
+            {template.dataSets.length > 1 && (
+                 <Button variant="destructive" size="icon" onClick={() => handleRemoveDataSet(dataSet.id)} className="ml-4">
+                    <Trash2 className="h-4 w-4" />
+                </Button>
+            )}
+        </div>
+
+        {dataSet.results.map((row, rowIndex) => (
           <div key={row.id} className="p-4 rounded-lg border bg-muted/30 space-y-4">
             <div className="flex justify-between items-center">
-              <p className="font-semibold text-foreground">Spesies #{index + 1}</p>
-              <Button variant="destructive" size="icon" onClick={() => handleRemoveRow(stream, row.id)}>
+              <p className="font-semibold text-foreground">Spesies #{rowIndex + 1}</p>
+              <Button variant="destructive" size="icon" onClick={() => handleRemoveRow(row.id)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label>Kategori</Label>
-                <Input value={row.category} onChange={(e) => handleResultRowChange(stream, index, 'category', e.target.value)} className="mt-1" />
+                <Input value={row.category} onChange={(e) => handleResultRowChange(rowIndex, 'category', e.target.value)} className="mt-1" />
               </div>
               <div>
                 <Label>Individu / Spesies</Label>
-                <Input value={row.species} onChange={(e) => handleResultRowChange(stream, index, 'species', e.target.value)} className="mt-1" />
+                <Input value={row.species} onChange={(e) => handleResultRowChange(rowIndex, 'species', e.target.value)} className="mt-1" />
               </div>
               <div>
                 <Label>Abundance (Individu/m²)</Label>
-                <Input value={row.abundance} onChange={(e) => handleResultRowChange(stream, index, 'abundance', e.target.value)} className="mt-1" />
+                <Input value={row.abundance} onChange={(e) => handleResultRowChange(rowIndex, 'abundance', e.target.value)} className="mt-1" />
               </div>
             </div>
           </div>
         ))}
-        <Button variant="outline" onClick={() => handleAddRow(stream)}>
+        <Button variant="outline" onClick={handleAddRow}>
           <PlusCircle className="w-4 h-4 mr-2" /> Tambah Spesies
         </Button>
 
         <div className="p-4 rounded-lg border bg-muted/30 space-y-4 mt-4">
-          <h4 className="font-semibold">Ringkasan Data {title}</h4>
+          <h4 className="font-semibold">Ringkasan Data</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div><Label>TOTAL (N)</Label><Input name="totalN" value={dataSet.summary.totalN} onChange={(e) => handleSummaryChange(stream, e)} className="mt-1" /></div>
-            <div><Label>Taxa Total (S)</Label><Input name="taxaTotalS" value={dataSet.summary.taxaTotalS} onChange={(e) => handleSummaryChange(stream, e)} className="mt-1" /></div>
-            <div><Label>Diversity Index (H')</Label><Input name="diversityH" value={dataSet.summary.diversityH} onChange={(e) => handleSummaryChange(stream, e)} className="mt-1" /></div>
-            <div><Label>Equitability Index (E)</Label><Input name="equitabilityE" value={dataSet.summary.equitabilityE} onChange={(e) => handleSummaryChange(stream, e)} className="mt-1" /></div>
-            <div><Label>Domination Index (D)</Label><Input name="dominationD" value={dataSet.summary.dominationD} onChange={(e) => handleSummaryChange(stream, e)} className="mt-1" /></div>
+            <div><Label>TOTAL (N)</Label><Input name="totalN" value={dataSet.summary.totalN} onChange={handleSummaryChange} className="mt-1" /></div>
+            <div><Label>Taxa Total (S)</Label><Input name="taxaTotalS" value={dataSet.summary.taxaTotalS} onChange={handleSummaryChange} className="mt-1" /></div>
+            <div><Label>Diversity Index (H')</Label><Input name="diversityH" value={dataSet.summary.diversityH} onChange={handleSummaryChange} className="mt-1" /></div>
+            <div><Label>Equitability Index (E)</Label><Input name="equitabilityE" value={dataSet.summary.equitabilityE} onChange={handleSummaryChange} className="mt-1" /></div>
+            <div><Label>Domination Index (D)</Label><Input name="dominationD" value={dataSet.summary.dominationD} onChange={handleSummaryChange} className="mt-1" /></div>
           </div>
         </div>
       </div>
@@ -177,8 +182,8 @@ export function NektonForm({
                 <Input id="sampleNo" name="sampleNoSuffix" value={sampleNoSuffix} onChange={handleSampleNoSuffixChange} placeholder=".01" className="rounded-l-none" />
               </div>
             </div>
-            <div><Label htmlFor="samplingLocation">Lokasi Sampling</Label><Input id="samplingLocation" name="samplingLocation" value={template.sampleInfo.samplingLocation} onChange={handleSampleInfoChange} /></div>
-            <div><Label htmlFor="samplingTime">Waktu Sampling</Label><Input id="samplingTime" name="samplingTime" value={template.sampleInfo.samplingTime} onChange={handleSampleInfoChange} /></div>
+            <div><Label htmlFor="samplingLocation">Lokasi Sampling (Umum)</Label><Input id="samplingLocation" name="samplingLocation" value={template.sampleInfo.samplingLocation} onChange={handleSampleInfoChange} /></div>
+            <div><Label htmlFor="samplingTime">Waktu Sampling (Umum)</Label><Input id="samplingTime" name="samplingTime" value={template.sampleInfo.samplingTime} onChange={handleSampleInfoChange} /></div>
           </div>
            <div>
               <Label htmlFor="notes">Catatan Kaki</Label>
@@ -186,8 +191,12 @@ export function NektonForm({
             </div>
         </div>
 
-        {renderDataSetForm('upstream', 'Data Upstream')}
-        {renderDataSetForm('downstream', 'Data Downstream')}
+        {template.dataSets.map((ds, index) => (
+          <DataSetForm key={ds.id} dataSet={ds} index={index} />
+        ))}
+         <Button variant="secondary" onClick={handleAddDataSet}>
+          <PlusCircle className="w-4 h-4 mr-2" /> Tambah Lokasi Pengujian
+        </Button>
 
         <div className="space-y-4">
           <h3 className="text-lg font-medium border-b pb-3 flex items-center"><Settings className="w-4 h-4 mr-2" /> Pengaturan Halaman</h3>
