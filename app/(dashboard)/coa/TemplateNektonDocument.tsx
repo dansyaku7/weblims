@@ -38,12 +38,13 @@ const NektonDataSetComponent = ({ dataSet, sampleInfo }: { dataSet: NektonDataSe
         </tbody>
       </table>
       
+      {/* --- STRUKTUR TABEL DI BAWAH INI DIPERBAIKI --- */}
       <table className="w-full border-collapse border-2 border-black text-[9px]">
         <thead>
-          <tr className="bg-gray-200 font-bold">
+          <tr className="bg-gray-200 font-bold text-center">
             <th className="border border-black p-1 w-8">No</th>
             <th className="border border-black p-1 text-left" colSpan={2}>INDIVIDU NEKTON</th>
-            <th className="border border-black p-1 w-40">Abundance (Individu/m²)</th>
+            <th className="border border-black p-1 w-40">Abudance (Individu/m²)</th>
           </tr>
         </thead>
         <tbody>
@@ -57,7 +58,8 @@ const NektonDataSetComponent = ({ dataSet, sampleInfo }: { dataSet: NektonDataSe
                 {param.category && isFirstInCategory && (
                   <tr className="font-bold">
                     <td className="border border-black p-1 text-center">{categoryLetter}</td>
-                    <td colSpan={3} className="p-1 pl-2 border-r border-black">{param.category}</td>
+                    <td colSpan={2} className="p-1 pl-2 border-r border-black">{param.category}</td>
+                    <td className="border border-black p-1"></td>
                   </tr>
                 )}
                 <tr>
