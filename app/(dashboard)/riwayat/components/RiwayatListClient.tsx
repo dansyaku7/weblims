@@ -10,15 +10,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, Search, Pencil } from "lucide-react";
+import { Search, Pencil, Trash2 } from "lucide-react"; // Ganti FileText dengan Trash2
 import { RiwayatResult } from "@/lib/riwayat-service";
 import { toast } from "sonner";
 
@@ -38,9 +32,8 @@ interface RiwayatListClientProps {
 export function RiwayatListClient({ initialRiwayatResult }: RiwayatListClientProps) {
   const router = useRouter();
   const [riwayat, setRiwayat] = useState<RiwayatItem[]>(initialRiwayatResult.data || []);
-  const [selectedItem, setSelectedItem] = useState<RiwayatItem | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isDeleting, setIsDeleting] = useState<string | null>(null); // State untuk loading saat hapus
 
   const filteredRiwayat = useMemo(() => {
     if (!searchTerm) return riwayat;
@@ -51,25 +44,49 @@ export function RiwayatListClient({ initialRiwayatResult }: RiwayatListClientPro
     );
   }, [riwayat, searchTerm]);
 
-  const handleLihatDetail = (item: RiwayatItem) => {
-    setSelectedItem(item);
-    setIsDetailOpen(true);
+  // --- FUNGSI handleLihatDetail DIHAPUS DAN DIGANTI DENGAN handleRemove ---
+  const handleRemove = async (item: RiwayatItem) => {
+    // Tampilkan konfirmasi sebelum menghapus
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus dokumen "${item.nomor}"?`)) {
+      return;
+    }
+
+    setIsDeleting(item.id);
+    try {
+      // Panggil API endpoint untuk menghapus
+      const response = await fetch(`/api/riwayat/${item.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Gagal menghapus dokumen dari server.");
+      }
+
+      // Hapus item dari state lokal agar UI terupdate
+      setRiwayat((prevRiwayat) => prevRiwayat.filter((r) => r.id !== item.id));
+      toast.success(`Dokumen "${item.nomor}" berhasil dihapus.`);
+
+    } catch (err: any) {
+      toast.error(`Error: ${err.message}`);
+    } finally {
+      setIsDeleting(null);
+    }
   };
+  // --------------------------------------------------------------------
 
   const handleEdit = (item: RiwayatItem) => {
     let path = "";
-    // Tentukan path berdasarkan tipe dokumen
     if (item.tipe === "surat_tugas") {
       path = "/surat";
     } else if (item.tipe === "surat_pengujian") {
       path = "/pengujian";
-    } else if (item.tipe === "berita_acara") { // <-- KONDISI INI PENTING
+    } else if (item.tipe === "berita_acara") {
       path = "/berita";
     } else {
       toast.error(`Tipe dokumen "${item.tipe}" tidak bisa diedit.`);
       return;
     }
-    // Arahkan ke halaman yang benar dengan membawa ID
     router.push(`${path}?id=${item.id}`);
   };
 
@@ -129,18 +146,24 @@ export function RiwayatListClient({ initialRiwayatResult }: RiwayatListClientPro
                       variant="outline"
                       size="sm"
                       onClick={() => handleEdit(item)}
+                      disabled={isDeleting === item.id}
                     >
                       <Pencil className="mr-2 h-3 w-3" />
                       Edit
                     </Button>
+                    
+                    {/* --- TOMBOL DETAIL DIUBAH MENJADI TOMBOL HAPUS --- */}
                     <Button
-                      variant="outline"
+                      variant="destructive"
                       size="sm"
-                      onClick={() => handleLihatDetail(item)}
+                      onClick={() => handleRemove(item)}
+                      disabled={isDeleting === item.id}
                     >
-                      <FileText className="mr-2 h-3 w-3" />
-                      Detail
+                      <Trash2 className="mr-2 h-3 w-3" />
+                      {isDeleting === item.id ? "Menghapus..." : "Hapus"}
                     </Button>
+                    {/* ------------------------------------------------ */}
+
                   </TableCell>
                 </TableRow>
               ))
@@ -155,21 +178,7 @@ export function RiwayatListClient({ initialRiwayatResult }: RiwayatListClientPro
         </Table>
       </div>
 
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Detail Data Dokumen</DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              Nomor: {selectedItem?.nomor}
-            </p>
-          </DialogHeader>
-          <div className="mt-4 max-h-[60vh] overflow-y-auto rounded-md bg-muted p-4">
-            <pre className="text-sm whitespace-pre-wrap">
-              {JSON.stringify(selectedItem?.dataForm, null, 2)}
-            </pre>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* --- DIALOG UNTUK DETAIL SUDAH DIHAPUS DARI SINI --- */}
     </>
   );
 }
