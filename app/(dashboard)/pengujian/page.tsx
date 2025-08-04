@@ -56,7 +56,7 @@ export default function SuratPengujianPage() {
       const bulan = new Date().getMonth();
       const tahun = new Date().getFullYear();
       const last3 = nomorFpps.slice(-3);
-      const formattedNomor = `${last3[0]}.${last3.slice(1)}`;
+      const formattedNomor = last3;
       setNomorSurat(`${formattedNomor}/DIL/${bulanRomawi[bulan]}/${tahun}/STP`);
     } else if (!nomorFpps) {
       setNomorSurat("");
