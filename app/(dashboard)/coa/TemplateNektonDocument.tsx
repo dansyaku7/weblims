@@ -38,7 +38,6 @@ const NektonDataSetComponent = ({ dataSet, sampleInfo }: { dataSet: NektonDataSe
         </tbody>
       </table>
       
-      {/* --- STRUKTUR TABEL DI BAWAH INI DIPERBAIKI --- */}
       <table className="w-full border-collapse border-2 border-black text-[9px]">
         <thead>
           <tr className="bg-gray-200 font-bold text-center">
@@ -50,31 +49,46 @@ const NektonDataSetComponent = ({ dataSet, sampleInfo }: { dataSet: NektonDataSe
         <tbody>
           {dataSet.results.map((param, index, arr) => {
             const isFirstInCategory = index === 0 || arr[index-1]?.category !== param.category;
-            // Menghitung huruf A, B, C untuk kategori
             const uniqueCategoriesBefore = [...new Set(arr.slice(0, index).map(p => p.category))];
             const categoryLetter = String.fromCharCode(65 + uniqueCategoriesBefore.length);
+            
             return (
               <React.Fragment key={param.id}>
                 {param.category && isFirstInCategory && (
                   <tr className="font-bold">
                     <td className="border border-black p-1 text-center">{categoryLetter}</td>
-                    <td className="p-1 pl-2 border-r border-black">{param.category}</td>
+                    <td className="border border-black p-1 pl-2">{param.category}</td>
                     <td className="border border-black p-1"></td>
                   </tr>
                 )}
                 <tr>
                   <td className="border border-black p-1 text-center">{index + 1}</td>
-                  <td className="border-r border-black p-1 pl-8">{param.species}</td>
+                  <td className="border border-black p-1 pl-8">{param.species}</td>
                   <td className="border border-black p-1 text-center">{param.abundance || '-'}</td>
                 </tr>
               </React.Fragment>
             )
           })}
-          <tr className="font-bold bg-gray-100"><td colSpan={2} className="border border-black p-1 text-right pr-4">TOTAL (N)</td><td className="border border-black p-1 text-center">{dataSet.summary.totalN || '-'}</td></tr>
-          <tr className="font-bold bg-gray-100"><td colSpan={2} className="border border-black p-1 text-right pr-4">Taxa Total (S)</td><td className="border border-black p-1 text-center">{dataSet.summary.taxaTotalS || '-'}</td></tr>
-          <tr className="font-bold bg-gray-100"><td colSpan={2} className="border border-black p-1 text-right pr-4">Diversity Index, Shannon-Wiener (H') = -∑Pi ln Pi</td><td className="border border-black p-1 text-center">{dataSet.summary.diversityH || '-'}</td></tr>
-          <tr className="font-bold bg-gray-100"><td colSpan={2} className="border border-black p-1 text-right pr-4">Equitability Index (E) = H'/Ln S</td><td className="border border-black p-1 text-center">{dataSet.summary.equitabilityE || '-'}</td></tr>
-          <tr className="font-bold bg-gray-100"><td colSpan={2} className="border border-black p-1 text-right pr-4">Domination Index (D) = ∑(Ni/N)²</td><td className="border border-black p-1 text-center">{dataSet.summary.dominationD || '-'}</td></tr>
+          <tr className="font-bold bg-gray-100">
+            <td colSpan={2} className="border border-black p-1 text-right pr-4">TOTAL (N)</td>
+            <td className="border border-black p-1 text-center">{dataSet.summary.totalN || '-'}</td>
+          </tr>
+          <tr className="font-bold bg-gray-100">
+            <td colSpan={2} className="border border-black p-1 text-right pr-4">Taxa Total (S)</td>
+            <td className="border border-black p-1 text-center">{dataSet.summary.taxaTotalS || '-'}</td>
+          </tr>
+          <tr className="font-bold bg-gray-100">
+            <td colSpan={2} className="border border-black p-1 text-right pr-4">Diversity Index, Shannon-Wiener (H') = -∑Pi ln Pi</td>
+            <td className="border border-black p-1 text-center">{dataSet.summary.diversityH || '-'}</td>
+          </tr>
+          <tr className="font-bold bg-gray-100">
+            <td colSpan={2} className="border border-black p-1 text-right pr-4">Equitability Index (E) = H'/Ln S</td>
+            <td className="border border-black p-1 text-center">{dataSet.summary.equitabilityE || '-'}</td>
+          </tr>
+          <tr className="font-bold bg-gray-100">
+            <td colSpan={2} className="border border-black p-1 text-right pr-4">Domination Index (D) = ∑(Ni/N)²</td>
+            <td className="border border-black p-1 text-center">{dataSet.summary.dominationD || '-'}</td>
+          </tr>
         </tbody>
       </table>
     </div>
