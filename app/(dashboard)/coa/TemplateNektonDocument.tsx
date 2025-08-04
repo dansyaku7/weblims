@@ -75,7 +75,7 @@ const NektonDataSetComponent = ({ dataSet, sampleInfo }: { dataSet: NektonDataSe
           <tr className="font-bold bg-gray-100"><td colSpan={3} className="border border-black p-1 text-right pr-4">Domination Index (D) = ∑(Ni/N)²</td><td className="border border-black p-1 text-center">{dataSet.summary.dominationD || '-'}</td></tr>
         </tbody>
       </table>
-    </>
+    </div>
   );
 };
 
