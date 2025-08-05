@@ -149,15 +149,17 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
           const result = await response.json();
           if (result.success) {
             const report = result.data;
+
+            // === PERBAIKAN 1: Semua tanggal dari DB diubah jadi objek Date ===
             const coverDataWithDates = {
               ...report.coverData,
-              receiveDate: report.coverData.receiveDate
-                ? new Date(report.coverData.receiveDate)
-                : undefined,
-              analysisDateStart: report.coverData.analysisDateStart
-                ? new Date(report.coverData.analysisDateStart)
-                : undefined,
+              receiveDate: report.coverData.receiveDate ? new Date(report.coverData.receiveDate) : undefined,
+              analysisDateStart: report.coverData.analysisDateStart ? new Date(report.coverData.analysisDateStart) : undefined,
+              analysisDateEnd: report.coverData.analysisDateEnd ? new Date(report.coverData.analysisDateEnd) : undefined,
+              reportDate: report.coverData.reportDate ? new Date(report.coverData.reportDate) : undefined,
             };
+            // ===============================================================
+
             setCoaData(coverDataWithDates);
             setActiveTemplates(report.activeTemplates);
             setReportId(report.id);
@@ -176,19 +178,23 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
   }, [searchParams, router, reportId]);
 
   useEffect(() => {
-    if (coaData && coaData.analysisDateStart) {
+    // Cek ini untuk mencegah kalkulasi ulang jika analysisDateEnd sudah diisi manual
+    if (coaData && coaData.analysisDateStart && !coaData.analysisDateEnd) {
       const startDate = new Date(coaData.analysisDateStart);
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + 14);
+
+      // === PERBAIKAN 2: Simpan sebagai objek Date, bukan string ===
       setCoaData((prev: any) => ({
         ...prev,
-        analysisDateEnd: format(endDate, "MMMM dd, yyyy", { locale: id }),
+        analysisDateEnd: endDate,
       }));
+      // ============================================================
     }
   }, [coaData?.analysisDateStart]);
 
   useEffect(() => {
-    if (coaData?.nomorFpps) {
+    if (coaData?.nomorFpps && !coaData.certificateNo) {
       const fppsNumber = coaData.nomorFpps;
       const newCertNo = `${fppsNumber}-COA`;
       setCoaData((prev: any) => ({ ...prev, certificateNo: newCertNo }));
@@ -207,6 +213,7 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
       const newReportId = nanoid(24);
       setReportId(newReportId);
 
+      // === PERBAIKAN 3: Semua tanggal diinisialisasi sebagai objek Date atau undefined ===
       setCoaData({
         nomorFpps: fppsData.formData.nomorFpps,
         customer: fppsData.formData.namaPelanggan,
@@ -218,13 +225,15 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
         sampleTakenBy: ["PT. Delta Indonesia Laboratory"],
         receiveDate: undefined,
         analysisDateStart: undefined,
-        analysisDateEnd: "",
-        reportDate: format(new Date(), "MMMM dd, yyyy", { locale: id }),
+        analysisDateEnd: undefined, // Diubah dari ""
+        reportDate: new Date(), // Diubah dari string format
         signatureUrl: null,
         directorName: "Drs. H. Soekardin Rachman, M.Si",
         certificateNo: "",
         showKanLogo: true,
       });
+      // =================================================================================
+
       setView("cover");
     } catch (error) {
       console.error(error);
@@ -383,7 +392,6 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
 
     let newTemplate;
 
-    // Data mapping untuk template yang bisa dibuat langsung
     const directCreateTemplates: { [key: string]: any } = {
       illumination: {
         results: [{ ...defaultIlluminationRow, id: nanoid() }],
@@ -406,24 +414,20 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
       },
     };
 
-    // Daftar template yang butuh layar pemilihan regulasi
     const needsRegulationSelection = [
       "odor", "wastewater", "cleanwater", "workplaceair",
       "surfacewater", "vibration", "airambient", "ssse", "noise",
     ];
 
     if (directCreateTemplates[type]) {
-      // Untuk template yang dibuat langsung
       newTemplate = {
         ...baseTemplate,
         ...directCreateTemplates[type],
       };
       setEditingTemplate(newTemplate);
     } else if (needsRegulationSelection.includes(type)) {
-      // Untuk template yang butuh pemilihan regulasi
       setEditingTemplate({ templateType: type });
     } else {
-      // Fallback jika tipe template tidak dikenali
       toast.error(`Tipe template "${type}" tidak dikenali.`);
       return;
     }
@@ -551,7 +555,7 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
               handleCheckboxChange={handleCheckboxChange}
               handleSignatureUpload={handleSignatureUpload}
               onNextStep={() => setView("dashboard")}
-              onPrevStep={() => setView("search")}
+              onPrevStep={resetForm}
               onPreview={() =>
                 handlePreview(
                   <CoaCoverDocument
@@ -904,13 +908,18 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
                       locale: id,
                     })
                   : "",
-                intervalTestingDate: coaData.analysisDateStart
-                  ? `${format(
-                      new Date(coaData.analysisDateStart),
-                      "MMMM dd, yyyy",
-                      { locale: id }
-                    )} to ${coaData.analysisDateEnd}`
-                  : "",
+                intervalTestingDate:
+                  coaData.analysisDateStart && coaData.analysisDateEnd
+                    ? `${format(
+                        new Date(coaData.analysisDateStart),
+                        "MMMM dd, yyyy",
+                        { locale: id }
+                      )} to ${format(
+                        new Date(coaData.analysisDateEnd),
+                        "MMMM dd, yyyy",
+                        { locale: id }
+                      )}`
+                    : "",
               },
             };
             return (

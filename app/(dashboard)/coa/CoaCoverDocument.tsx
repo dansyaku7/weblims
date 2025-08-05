@@ -17,8 +17,8 @@ interface CoaCoverDocumentProps {
     sampleTakenBy: string[];
     receiveDate: Date | undefined;
     analysisDateStart: Date | undefined;
-    analysisDateEnd: string | Date | undefined; // Tipe dibuat lebih fleksibel
-    reportDate: string;
+    analysisDateEnd: string | Date | undefined;
+    reportDate: Date | undefined; // Tipe sudah benar
     signatureUrl: string | null;
     directorName: string;
     showKanLogo: boolean;
@@ -51,9 +51,7 @@ const formatDateSafe = (date: Date | string | undefined) => {
 const formatDateRange = (startDate: Date | string | undefined, endDate: Date | string | undefined) => {
   const formattedStart = formatDateSafe(startDate);
   const formattedEnd = formatDateSafe(endDate);
-
   if (formattedStart && formattedEnd) {
-    // Jika tanggalnya sama, tampilkan satu saja
     if (formattedStart === formattedEnd) {
         return formattedStart;
     }
@@ -64,7 +62,6 @@ const formatDateRange = (startDate: Date | string | undefined, endDate: Date | s
   }
   return "Tanggal tidak tersedia";
 };
-
 
 export const CoaCoverDocument = React.forwardRef<
   HTMLDivElement,
@@ -180,7 +177,6 @@ export const CoaCoverDocument = React.forwardRef<
               <div className="pt-2">{getSampleTakenByText()}</div>
             </div>
 
-            {/* ===== BAGIAN INI SUDAH DIPERBAIKI ===== */}
             <div className="grid grid-cols-[140px_10px_1fr] gap-x-1 gap-y-1.5">
               <p className="font-bold">Sample Receive Date</p>
               <p>:</p>
@@ -194,10 +190,10 @@ export const CoaCoverDocument = React.forwardRef<
               
               <p className="font-bold">Report Date</p>
               <p>:</p>
-              <p>{data.reportDate}</p>
+              {/* ===== INI BAGIAN YANG DIPERBAIKI ===== */}
+              <p>{formatDateSafe(data.reportDate)}</p>
+              {/* ======================================= */}
             </div>
-            {/* ======================================= */}
-
           </div>
         </main>
 
@@ -222,7 +218,8 @@ export const CoaCoverDocument = React.forwardRef<
               <p>
                 This Certificate of Analysis consist of {data.totalPages} pages
               </p>
-              <p className="mt-1">Bekasi, {data.reportDate}</p>
+              {/* Menggunakan formatDateSafe juga di sini untuk konsistensi */}
+              <p className="mt-1">Bekasi, {formatDateSafe(data.reportDate)}</p>
               <div className="relative h-20 w-32 my-1 mx-auto">
                 {data.signatureUrl ? (
                   <img

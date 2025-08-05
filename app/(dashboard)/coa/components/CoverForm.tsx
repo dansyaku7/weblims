@@ -24,7 +24,6 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import Image from "next/image";
 
-// === PERUBAHAN 1: Tipe data reportDate diubah ===
 interface CoaData {
   customer: string;
   address: string;
@@ -34,12 +33,11 @@ interface CoaData {
   receiveDate: Date | undefined;
   analysisDateStart: Date | undefined;
   analysisDateEnd: Date | undefined;
-  reportDate: Date | undefined; // Diubah dari string
+  reportDate: Date | undefined;
   directorName: string;
   signatureUrl: string;
   showKanLogo: boolean;
 }
-// ===============================================
 
 interface CoverFormProps {
   coaData: CoaData;
@@ -54,11 +52,24 @@ interface CoverFormProps {
   onPreview: () => void;
 }
 
+// === PERUBAHAN DI SINI: "Nekton" ditambahkan ===
 const allSubjects = [
-  "Ambient Outdoor Air Quality", "Clean Water", "Heat Stress", "Illumination",
-  "ISPU", "Noise", "Non-SSE", "Odor", "SSSE", "Surface Water",
-  "Vibration", "Wastewater", "Workplace Air Quality",
+  "Ambient Outdoor Air Quality",
+  "Clean Water",
+  "Heat Stress",
+  "Illumination",
+  "ISPU",
+  "Noise",
+  "Nekton", // Ditambahkan di sini
+  "Non-SSE",
+  "Odor",
+  "SSSE",
+  "Surface Water",
+  "Vibration",
+  "Wastewater",
+  "Workplace Air Quality",
 ];
+// ===========================================
 
 const sampleTakenByOptions = [
   "PT. Delta Indonesia Laboratory", "Customer", "Third Party",
@@ -202,8 +213,6 @@ export function CoverForm({
                 </PopoverContent>
               </Popover>
             </div>
-
-            {/* === PERUBAHAN 2: Komponen Input diganti jadi Popover Calendar === */}
             <div>
               <Label className="text-sm font-medium text-foreground">Report Date</Label>
               <Popover>
@@ -223,8 +232,6 @@ export function CoverForm({
                 </PopoverContent>
               </Popover>
             </div>
-            {/* =============================================================== */}
-
           </div>
         </div>
 
