@@ -49,32 +49,40 @@ export default function FormRincian({
   onSubmit,
   onPrint,
 }: FormRincianProps) {
-
-  // --- FUNGSI INI YANG DIUBAH ---
+    
+  // --- FUNGSI BARU YANG LEBIH FLEKSIBEL (HANDLE 3-4 DIGIT URUTAN) ---
   const generateId = (index: number) => {
-    // Ambil nomor FPPS dari formData props (ini sudah tanpa prefix "DIL-")
     const noFpps = formData.nomorFpps || "";
 
-    // Jika nomor FPPS belum ada atau tidak valid, gunakan format fallback agar tidak error
-    if (noFpps.length < 9) {
-      console.warn("Nomor FPPS tidak valid, menggunakan format fallback.");
+    // Ubah validasi: Nomor FPPS sekarang minimal 7 karakter
+    // (e.g., 2508001 atau 25081000)
+    if (noFpps.length < 7) {
+      console.warn(
+        `Nomor FPPS "${noFpps}" tidak valid (minimal 7 karakter), menggunakan format fallback.`
+      );
       const fallbackSeq = String(index + 1).padStart(2, "0");
-      return `xxxxxx-xxx.${fallbackSeq}`;
+      return `xxxx-xxx.${fallbackSeq}`;
     }
 
-    // Logika baru sesuai permintaan:
-    // Contoh: nomorFpps "250712002" -> "250712-002.01"
-    const part1 = noFpps.slice(0, 6); // Mengambil "250712"
-    const part2 = noFpps.slice(6, 9); // Mengambil "002"
-    const seq = String(index + 1).padStart(2, "0"); // Mengambil nomor urut, e.g., "01"
+    // Logika baru yang lebih fleksibel:
+    // Contoh 1: Input "2508999"  -> ID "2508-999.01"
+    // Contoh 2: Input "25081000" -> ID "2508-1000.01"
+
+    // Tetap ambil 4 karakter pertama sebagai Tahun + Bulan
+    const part1 = noFpps.slice(0, 4); // -> "2508"
+
+    // Ambil SEMUA sisa karakter setelahnya, entah itu 3 atau 4 digit
+    const part2 = noFpps.slice(4); // -> "999" atau "1000"
+
+    // Nomor urut untuk rincian, tetap sama
+    const seq = String(index + 1).padStart(2, "0"); // -> "01"
 
     return `${part1}-${part2}.${seq}`;
   };
-  // ------------------------------
+  // ------------------------------------------------------------------
 
   const handleAdd = () => {
-    // Saat item baru ditambahkan, generateId akan dipanggil dengan index baru
-    const id = generateId(rincian.length); 
+    const id = generateId(rincian.length);
     setRincian([
       ...rincian,
       { id, area: "", matriks: "", parameter: "", regulasi: "", metode: "" },
@@ -126,7 +134,7 @@ export default function FormRincian({
         <div className="space-y-4">
           {rincian.map((item, index) => (
             <div
-              key={item.id} // Sebaiknya gunakan index sebagai key jika ID bisa berubah
+              key={index} // Menggunakan index sebagai key lebih aman di sini
               className="p-4 rounded-md border border-border space-y-4 relative"
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -222,7 +230,7 @@ export default function FormRincian({
           Kembali
         </Button>
         <Button variant="secondary" onClick={onPrint}>
-          <Printer />
+          <Printer className="mr-2 h-4 w-4" />
           Print
         </Button>
         <Button onClick={onSubmit}>Simpan & Buat FPPS</Button>

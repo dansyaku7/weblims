@@ -25,28 +25,46 @@ interface FppsDocumentProps {
 
 export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
   ({ data }, ref) => {
-    // Logika pemisahan alamat sudah dihapus dari sini.
+    // Fungsi untuk format tanggal (bisa ditaruh di luar jika dipakai di banyak tempat)
+    const formatDate = (dateString: string) => {
+      if (!dateString) return ".........................";
+      try {
+        const date = new Date(dateString);
+        // Cek apakah tanggal valid
+        if (isNaN(date.getTime())) {
+          return dateString; // Kembalikan string asli jika format tidak dikenali
+        }
+        return new Intl.DateTimeFormat('id-ID', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+        }).format(date);
+      } catch (e) {
+        return dateString; // Kembalikan string asli jika ada error
+      }
+    };
 
     return (
       <div
         ref={ref}
         className="bg-white p-8 text-black text-xs font-[Times_New_Roman]"
       >
+        {/* === BAGIAN HEADER === */}
         <div className="flex justify-between items-start">
           <img
             src="/images/logo-delta-big.png"
             alt="Logo Delta Indonesia Laboratory"
-            className="h-30 w-auto"
+            className="h-20 w-auto"
           />
           <div className="text-right text-[10px]">
-            <p className="font-bold text-xl">PT. Delta Indonesia Laboratory</p>
+            <p className="font-bold text-lg">PT. Delta Indonesia Laboratory</p>
             <p>Jl. Perum Prima Harapan Regency</p>
             <p>Gedung Prima Orchard Block C, No. 2</p>
             <p>Bekasi Utara, Kota Bekasi 17123, Provinsi Jawa Barat</p>
             <p>Telp: 021 – 88382018</p>
           </div>
         </div>
-        <hr className="border-t-2 border-black" />
+        <hr className="border-t-2 border-black my-2" />
         <div className="text-center mb-4">
           <h1 className="text-sm font-bold underline uppercase">
             PERMINTAAN PENGUJIAN
@@ -56,6 +74,7 @@ export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
           </h1>
         </div>
 
+        {/* === BAGIAN INFO DASAR === */}
         <div>
           <div className="font-bold">I. PERMINTAAN PENGUJIAN</div>
           <div className="border border-black">
@@ -74,9 +93,7 @@ export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
                     </tr>
                     <tr className="border-b border-black">
                       <td className="p-1 align-top font-bold">2)</td>
-                      <td className="p-1 align-top font-bold">
-                        Alamat Pelanggan
-                      </td>
+                      <td className="p-1 align-top font-bold">Alamat Pelanggan</td>
                       <td className="p-1 align-top">:</td>
                       <td className="p-1">{data.alamatPelanggan}</td>
                     </tr>
@@ -88,24 +105,19 @@ export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
                     </tr>
                     <tr className="border-b border-black">
                       <td className="p-1 font-bold">3)</td>
-                      <td className="p-1 font-bold">
-                        Tanggal Masuk Contoh Uji
-                      </td>
+                      <td className="p-1 font-bold">Tanggal Masuk Contoh Uji</td>
                       <td className="p-1">:</td>
-                      <td className="p-1">{data.tanggalMasuk}</td>
+                      <td className="p-1">{formatDate(data.tanggalMasuk)}</td>
                     </tr>
                     <tr>
                       <td className="p-1 font-bold">4)</td>
-                      <td className="p-1 font-bold">
-                        Kegiatan/Paket Pekerjaan
-                      </td>
+                      <td className="p-1 font-bold">Kegiatan/Paket Pekerjaan</td>
                       <td className="p-1">:</td>
                       <td className="p-1">{data.kegiatan}</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
-
               <div className="w-[35%] border-l border-black">
                 <table className="w-full border-collapse">
                   <tbody>
@@ -126,12 +138,12 @@ export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
                         <div className="grid grid-cols-2">
                           <div>
                             {data.petugas.slice(0, 3).map((nama, i) => (
-                              <div key={i}>{`${i + 1} ${nama}`}</div>
+                              <div key={i}>{`${i + 1}. ${nama}`}</div>
                             ))}
                           </div>
                           <div>
                             {data.petugas.slice(3).map((nama, i) => (
-                              <div key={i}>{`${i + 4} ${nama}`}</div>
+                              <div key={i}>{`${i + 4}. ${nama}`}</div>
                             ))}
                           </div>
                         </div>
@@ -144,37 +156,23 @@ export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
           </div>
         </div>
 
+        {/* === BAGIAN RINCIAN UJI (TANPA BARIS KOSONG) === */}
         <div className="mt-2">
           <table className="w-full border-collapse border border-black text-xs">
-            <thead className="font-bold">
+            <thead className="font-bold text-center">
               <tr>
-                <th
-                  className="border-r border-b border-black p-1 text-left"
-                  colSpan={7}
-                >
+                <th className="border-r border-b border-black p-1 text-left" colSpan={7}>
                   5) Rincian Pengujian
                 </th>
               </tr>
               <tr>
-                <th className="border-r border-b border-black p-1 w-[4%]">
-                  No.
-                </th>
-                <th className="border-r border-b border-black p-1 w-[12%]">
-                  Sample ID
-                </th>
-                <th className="border-r border-b border-black p-1 w-[15%]">
-                  Area
-                </th>
-                <th className="border-r border-b border-black p-1 w-[8%]">
-                  Matriks
-                </th>
-                <th className="border-r border-b border-black p-1 w-[31%]">
-                  Parameter
-                </th>
-                <th className="border-r border-b border-black p-1 w-[15%]">
-                  Regulasi
-                </th>
-                <th className="border-b border-black p-1 w-[15%]">Metode</th>
+                <th className="border-r border-b border-black p-1 w-[4%]">No.</th>
+                <th className="border-r border-b border-black p-1 w-[12%]">Sample ID</th>
+                <th className="border-r border-b border-black p-1 w-[15%]">Area</th>
+                <th className="border-r border-b border-black p-1 w-[6%]">Matriks</th>
+                <th className="border-r border-b border-black p-1 w-[35%]">Parameter</th>
+                <th className="border-r border-b border-black p-1 w-[18%]">Regulasi</th>
+                <th className="border-b border-black p-1 w-[10%]">Metode</th>
               </tr>
             </thead>
             <tbody>
@@ -183,12 +181,8 @@ export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
                   <td className="border-r border-b border-black p-1 text-center align-top">
                     {index + 1}
                   </td>
-                  <td className="border-r border-b border-black p-1 align-top">
-                    {item.id}
-                  </td>
-                  <td className="border-r border-b border-black p-1 align-top">
-                    {item.area}
-                  </td>
+                  <td className="border-r border-b border-black p-1 align-top">{item.id}</td>
+                  <td className="border-r border-b border-black p-1 align-top">{item.area}</td>
                   <td className="border-r border-b border-black p-1 text-center align-top">
                     {item.matriks}
                   </td>
@@ -207,168 +201,100 @@ export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
           </table>
         </div>
 
-        <p className="text-[9px] mt-1">FR-7.1.1</p>
-        <div className="mt-4">
-          <div className="flex justify-between items-start gap-6">
-            {/* Kolom Kiri */}
-            <div className="w-1/2">
-              <p className="text-left text-[10px]">
-                DIISI OLEH PETUGAS ADMINISTRASI LABORATORIUM
-              </p>
-              <p className="text-left text-[10px] font-bold">
-                II. PENERIMAAN SAMPEL / CONTOH UJI
-              </p>
-              <table className="w-full border-collapse border border-black">
-                <thead>
-                  <tr className="font-bold">
-                    <td className="border border-black p-1 w-[4%]">No.</td>
-                    <td className="border border-black p-1">Uraian</td>
-                    <td className="border border-black p-1 text-center">
-                      Kondisi Contoh
-                    </td>
-                    <td className="border border-black p-1 text-center">
-                      Keterangan
-                    </td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border border-black p-1">1)</td>
-                    <td className="border border-black p-1">Jumlah</td>
-                    <td className="border border-black p-1 text-center">
-                      Cukup / Tidak
-                    </td>
-                    <td className="border border-black p-1 h-6"></td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black p-1">2)</td>
-                    <td className="border border-black p-1">Kondisi</td>
-                    <td className="border border-black p-1 text-center">
-                      Baik / Tidak
-                    </td>
-                    <td className="border border-black p-1 h-6"></td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black p-1">3)</td>
-                    <td className="border border-black p-1">
-                      Tempat contoh uji / wadah
-                    </td>
-                    <td className="border border-black p-1 text-center">
-                      Baik / Tidak
-                    </td>
-                    <td className="border border-black p-1 h-6"></td>
-                  </tr>
-                </tbody>
-              </table>
-              <p className="mt-2 ml-7 underline">
-                Waktu pelaksanaan pengujian maksimum .........................
-                hari kerja *)
-              </p>
+        
+
+        {/* === BAGIAN BAWAH & TANDA TANGAN === */}
+        <div className="mt-2">
+            <div className="w-full">
+                <p className="text-left text-[10px] font-bold">II. PENERIMAAN SAMPEL / CONTOH UJI (DIISI OLEH PETUGAS ADMINISTRASI LAB)</p>
+                <table className="w-1/2 border-collapse border border-black float-left mr-4">
+                     <thead>
+                       <tr className="font-bold text-center">
+                         <td className="border border-black p-1 w-[5%]">No.</td>
+                         <td className="border border-black p-1 w-[45%]">Uraian</td>
+                         <td className="border border-black p-1 w-[25%]">Kondisi Contoh</td>
+                         <td className="border border-black p-1 w-[25%]">Keterangan</td>
+                       </tr>
+                     </thead>
+                     <tbody>
+                       <tr>
+                         <td className="border border-black p-1 text-center">1)</td>
+                         <td className="border border-black p-1">Jumlah</td>
+                         <td className="border border-black p-1 text-center">Cukup / Tidak</td>
+                         <td className="border border-black p-1 h-6"></td>
+                       </tr>
+                       <tr>
+                         <td className="border border-black p-1 text-center">2)</td>
+                         <td className="border border-black p-1">Kondisi</td>
+                         <td className="border border-black p-1 text-center">Baik / Tidak</td>
+                         <td className="border border-black p-1 h-6"></td>
+                       </tr>
+                       <tr>
+                         <td className="border border-black p-1 text-center">3)</td>
+                         <td className="border border-black p-1">Tempat contoh uji / wadah</td>
+                         <td className="border border-black p-1 text-center">Baik / Tidak</td>
+                         <td className="border border-black p-1 h-6"></td>
+                       </tr>
+                     </tbody>
+                </table>
+
+                <p className="font-bold text-left">III. KAJI ULANG PERMINTAAN PENGUJIAN</p>
+                <table className="w-auto border-collapse border border-black">
+                     <tbody>
+                       <tr>
+                         <td className="border border-black p-1 text-center">1)</td>
+                         <td className="border border-black p-1">Kemampuan SDM</td>
+                         <td className="border border-black p-1 text-center">:</td>
+                         <td className="border border-black p-1">YA / TIDAK</td>
+                       </tr>
+                       <tr>
+                         <td className="border border-black p-1 text-center">2)</td>
+                         <td className="border border-black p-1">Kesesuaian Metode</td>
+                         <td className="border border-black p-1 text-center">:</td>
+                         <td className="border border-black p-1">YA / TIDAK</td>
+                       </tr>
+                       <tr>
+                         <td className="border border-black p-1 text-center">3)</td>
+                         <td className="border border-black p-1">Kemampuan Peralatan</td>
+                         <td className="border border-black p-1 text-center">:</td>
+                         <td className="border border-black p-1">YA / TIDAK</td>
+                       </tr>
+                       <tr>
+                         <td className="border border-black p-1 text-center">4)</td>
+                         <td className="border border-black p-1">Kesimpulan</td>
+                         <td className="border border-black p-1 text-center">:</td>
+                         <td className="border border-black p-1">BISA / TIDAK BISA</td>
+                       </tr>
+                     </tbody>
+                </table>
             </div>
 
-            <div className="w-1/2 mt-2.5">
-              <p className="font-bold text-left">
-                III. KAJI ULANG PERMINTAAN PENGUJIAN
-              </p>
-              <table className="w-full border-collapse border border-black ">
-                <tbody>
-                  <tr>
-                    <td className="border border-black p-1 w-[2%] text-center">
-                      1)
-                    </td>
-                    <td className="border border-black p-1 w-[10%]">
-                      Kemampuan SDM
-                    </td>
-                    <td className="border border-black p-1 w-[1%] text-center">
-                      :
-                    </td>
-                    <td className="border border-black p-1 w-[5%] text-left">
-                      YA / TIDAK
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black p-1 w-[2%] text-center">
-                      2)
-                    </td>
-                    <td className="border border-black p-1 w-[10%]">
-                      Kesesuaian Metode
-                    </td>
-                    <td className="border border-black p-1 w-[1%] text-center">
-                      :
-                    </td>
-                    <td className="border border-black p-1 w-[5%] text-left">
-                      YA / TIDAK
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black p-1 w-[2%] text-center">
-                      3)
-                    </td>
-                    <td className="border border-black p-1 w-[10%]">
-                      Kemampuan Peralatan
-                    </td>
-                    <td className="border border-black p-1 w-[1%] text-center">
-                      :
-                    </td>
-                    <td className="border border-black p-1 w-[5%] text-left">
-                      YA / TIDAK
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="border border-black p-1 w-[2%] text-center">
-                      4)
-                    </td>
-                    <td className="border border-black p-1 w-[10%]">
-                      Kesimpulan
-                    </td>
-                    <td className="border border-black p-1 w-[1%] text-center">
-                      :
-                    </td>
-                    <td className="border border-black p-1 w-[5%] text-left">
-                      BISA / TIDAK BISA
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="clear-both pt-2">
+                <div className="border border-black h-12 w-full">
+                  <p className="ml-1">Catatan :</p>
+                </div>
             </div>
-          </div>
-
-          <div className="mt-5 w-full">
-            <div className="border border-black h-12 mt-1 w-full">
-              {" "}
-              <p className="ml-1">Catatan :</p>
-            </div>
-          </div>
 
           {/* Bagian Tanda Tangan */}
-          <div className="flex justify-between items-end mt-8 ml-30 mr-30">
+          <div className="flex justify-around items-end mt-4">
             <div className="text-center">
               <p>PJ Teknis</p>
               <div className="h-16"></div>
-              <p>..........................................</p>
+              <p>(..........................................)</p>
             </div>
             <div className="text-center">
-              <p>............, ..............</p>
+                <p>Bekasi, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
               <p>Pelanggan</p>
               <div className="h-16"></div>
-              <p>..........................................</p>
+              <p>(..........................................)</p>
             </div>
           </div>
 
-          <div className="text-[12px] mt-8 space-y-1">
-            <p>
-              <strong>Catatan :</strong>
-            </p>
-            <p>
-              - Apabila terdapat perubahan yang mengakibatkan pengujian tidak
-              dapat dilakukan atau disubkontrakkan, maka akan ada pemberitahuan
-              dari Laboratorium DIL Kota Bekasi paling lambat 3 (tiga) hari
-              kerja sejak Permintaan Pengujian diterima.
-            </p>
-            <p>
-              *) Penerbitan Certificate Of Analysis (COA) maksimal 14 (empat
-              belas) hari kerja setelah sampel diterima.
-            </p>
+          <div className="text-[10px] mt-4 space-y-1">
+            <p><strong>Catatan Tambahan :</strong></p>
+            <p>- Apabila terdapat perubahan yang mengakibatkan pengujian tidak dapat dilakukan atau disubkontrakkan, maka akan ada pemberitahuan dari Laboratorium DIL Kota Bekasi paling lambat 3 (tiga) hari kerja sejak Permintaan Pengujian diterima.</p>
+            <p>- *) Penerbitan Certificate Of Analysis (COA) maksimal 14 (empat belas) hari kerja setelah sampel diterima.</p>
+            <p className="text-[9px] mt-1">FR-7.1.1</p>
           </div>
         </div>
       </div>
