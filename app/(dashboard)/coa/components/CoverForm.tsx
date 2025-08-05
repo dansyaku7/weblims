@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import Image from "next/image";
 
+// === PERUBAHAN 1: Tipe data reportDate diubah ===
 interface CoaData {
   customer: string;
   address: string;
@@ -33,11 +34,12 @@ interface CoaData {
   receiveDate: Date | undefined;
   analysisDateStart: Date | undefined;
   analysisDateEnd: Date | undefined;
-  reportDate: string;
+  reportDate: Date | undefined; // Diubah dari string
   directorName: string;
   signatureUrl: string;
   showKanLogo: boolean;
 }
+// ===============================================
 
 interface CoverFormProps {
   coaData: CoaData;
@@ -62,13 +64,10 @@ const sampleTakenByOptions = [
   "PT. Delta Indonesia Laboratory", "Customer", "Third Party",
 ];
 
-// FUNGSI BANTUAN UNTUK MEMFORMAT TANGGAL DENGAN AMAN
 const safeFormatDate = (date: Date | string | undefined, formatString: string) => {
   if (!date) return <span className="text-muted-foreground">Pilih tanggal</span>;
   try {
-    // Jika 'date' adalah string, ubah dulu jadi objek Date
     const dateObj = typeof date === 'string' ? new Date(date) : date;
-    // Cek apakah tanggalnya valid setelah di-parse
     if (isNaN(dateObj.getTime())) {
       return <span className="text-red-500">Tanggal tidak valid</span>;
     }
@@ -203,14 +202,29 @@ export function CoverForm({
                 </PopoverContent>
               </Popover>
             </div>
+
+            {/* === PERUBAHAN 2: Komponen Input diganti jadi Popover Calendar === */}
             <div>
               <Label className="text-sm font-medium text-foreground">Report Date</Label>
-              <Input
-                readOnly
-                value={coaData.reportDate}
-                className="mt-1 bg-transparent border border-input text-muted-foreground"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal mt-1 bg-transparent border border-input text-foreground">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {safeFormatDate(coaData.reportDate, "PPP")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={coaData.reportDate ? new Date(coaData.reportDate) : undefined}
+                    onSelect={(date) => handleCoaChange("reportDate", date)}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
+            {/* =============================================================== */}
+
           </div>
         </div>
 
