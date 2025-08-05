@@ -152,7 +152,7 @@ export default function RegistrationPage() {
         {`
           @media print {
             @page {
-              size: A4 landscape;
+              size: letter landscape;
               margin: 0;
             }
             body {
