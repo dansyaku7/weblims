@@ -24,7 +24,6 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import Image from "next/image";
 
-// Tipe data diubah untuk analysisDateEnd
 interface CoaData {
   customer: string;
   address: string;
@@ -33,7 +32,7 @@ interface CoaData {
   sampleTakenBy: string[];
   receiveDate: Date | undefined;
   analysisDateStart: Date | undefined;
-  analysisDateEnd: Date | undefined; // Diubah dari string
+  analysisDateEnd: Date | undefined;
   reportDate: string;
   directorName: string;
   signatureUrl: string;
@@ -54,26 +53,31 @@ interface CoverFormProps {
 }
 
 const allSubjects = [
-  "Ambient Outdoor Air Quality",
-  "Clean Water",
-  "Heat Stress",
-  "Illumination",
-  "ISPU",
-  "Noise",
-  "Non-SSE",
-  "Odor",
-  "SSSE",
-  "Surface Water",
-  "Vibration",
-  "Wastewater",
-  "Workplace Air Quality",
+  "Ambient Outdoor Air Quality", "Clean Water", "Heat Stress", "Illumination",
+  "ISPU", "Noise", "Non-SSE", "Odor", "SSSE", "Surface Water",
+  "Vibration", "Wastewater", "Workplace Air Quality",
 ];
 
 const sampleTakenByOptions = [
-  "PT. Delta Indonesia Laboratory",
-  "Customer",
-  "Third Party",
+  "PT. Delta Indonesia Laboratory", "Customer", "Third Party",
 ];
+
+// FUNGSI BANTUAN UNTUK MEMFORMAT TANGGAL DENGAN AMAN
+const safeFormatDate = (date: Date | string | undefined, formatString: string) => {
+  if (!date) return <span className="text-muted-foreground">Pilih tanggal</span>;
+  try {
+    // Jika 'date' adalah string, ubah dulu jadi objek Date
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    // Cek apakah tanggalnya valid setelah di-parse
+    if (isNaN(dateObj.getTime())) {
+      return <span className="text-red-500">Tanggal tidak valid</span>;
+    }
+    return format(dateObj, formatString, { locale: id });
+  } catch (error) {
+    console.error("Date formatting error:", error);
+    return <span className="text-red-500">Error format</span>;
+  }
+};
 
 export function CoverForm({
   coaData,
@@ -98,15 +102,9 @@ export function CoverForm({
       </CardHeader>
       <CardContent className="space-y-8">
         <div className="p-4 rounded-md border border-border">
-          <p>
-            Customer: <span className="font-semibold">{coaData.customer}</span>
-          </p>
-          <p>
-            Address: <span className="font-semibold">{coaData.address}</span>
-          </p>
-          <p>
-            Phone: <span className="font-semibold">{coaData.phone}</span>
-          </p>
+          <p>Customer: <span className="font-semibold">{coaData.customer}</span></p>
+          <p>Address: <span className="font-semibold">{coaData.address}</span></p>
+          <p>Phone: <span className="font-semibold">{coaData.phone}</span></p>
         </div>
 
         <div>
@@ -117,14 +115,9 @@ export function CoverForm({
                 <Checkbox
                   id={subject}
                   checked={coaData.subjects.includes(subject)}
-                  onCheckedChange={() =>
-                    handleCheckboxChange("subjects", subject)
-                  }
+                  onCheckedChange={() => handleCheckboxChange("subjects", subject)}
                 />
-                <label
-                  htmlFor={subject}
-                  className="text-sm font-medium text-foreground"
-                >
+                <label htmlFor={subject} className="text-sm font-medium text-foreground">
                   {subject}
                 </label>
               </div>
@@ -133,23 +126,16 @@ export function CoverForm({
         </div>
 
         <div>
-          <Label className="text-sm font-medium text-foreground">
-            Sample taken by
-          </Label>
+          <Label className="text-sm font-medium text-foreground">Sample taken by</Label>
           <div className="mt-2 p-4 flex flex-col md:flex-row gap-4 rounded-md border border-border">
             {sampleTakenByOptions.map((option) => (
               <div key={option} className="flex items-center space-x-2">
                 <Checkbox
                   id={option}
                   checked={coaData.sampleTakenBy.includes(option)}
-                  onCheckedChange={() =>
-                    handleCheckboxChange("sampleTakenBy", option)
-                  }
+                  onCheckedChange={() => handleCheckboxChange("sampleTakenBy", option)}
                 />
-                <label
-                  htmlFor={option}
-                  className="text-sm font-medium text-foreground"
-                >
+                <label htmlFor={option} className="text-sm font-medium text-foreground">
                   {option}
                 </label>
               </div>
@@ -161,29 +147,18 @@ export function CoverForm({
           <Label className="text-sm font-medium text-foreground">Tanggal</Label>
           <div className="p-4 mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 rounded-md border border-border">
             <div>
-              <Label className="text-sm font-medium text-foreground">
-                Receive Date
-              </Label>
+              <Label className="text-sm font-medium text-foreground">Receive Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal mt-1 bg-transparent border border-input text-foreground"
-                  >
+                  <Button variant="outline" className="w-full justify-start text-left font-normal mt-1 bg-transparent border border-input text-foreground">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {coaData.receiveDate ? (
-                      format(coaData.receiveDate, "PPP", { locale: id })
-                    ) : (
-                      <span className="text-muted-foreground">
-                        Pilih tanggal
-                      </span>
-                    )}
+                    {safeFormatDate(coaData.receiveDate, "PPP")}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
-                    selected={coaData.receiveDate}
+                    selected={coaData.receiveDate ? new Date(coaData.receiveDate) : undefined}
                     onSelect={(date) => handleCoaChange("receiveDate", date)}
                     initialFocus
                   />
@@ -191,75 +166,45 @@ export function CoverForm({
               </Popover>
             </div>
             <div>
-              <Label className="text-sm font-medium text-foreground">
-                Analysis Start
-              </Label>
+              <Label className="text-sm font-medium text-foreground">Analysis Start</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal mt-1 bg-transparent border border-input text-foreground"
-                  >
+                  <Button variant="outline" className="w-full justify-start text-left font-normal mt-1 bg-transparent border border-input text-foreground">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {coaData.analysisDateStart ? (
-                      format(coaData.analysisDateStart, "PPP", { locale: id })
-                    ) : (
-                      <span className="text-muted-foreground">
-                        Pilih tanggal
-                      </span>
-                    )}
+                    {safeFormatDate(coaData.analysisDateStart, "PPP")}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
-                    selected={coaData.analysisDateStart}
-                    onSelect={(date) =>
-                      handleCoaChange("analysisDateStart", date)
-                    }
+                    selected={coaData.analysisDateStart ? new Date(coaData.analysisDateStart) : undefined}
+                    onSelect={(date) => handleCoaChange("analysisDateStart", date)}
                     initialFocus
                   />
                 </PopoverContent>
               </Popover>
             </div>
-
             <div>
-              <Label className="text-sm font-medium text-foreground">
-                Analysis End
-              </Label>
+              <Label className="text-sm font-medium text-foreground">Analysis End</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal mt-1 bg-transparent border border-input text-foreground"
-                  >
+                  <Button variant="outline" className="w-full justify-start text-left font-normal mt-1 bg-transparent border border-input text-foreground">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {coaData.analysisDateEnd ? (
-                      format(coaData.analysisDateEnd, "PPP", { locale: id })
-                    ) : (
-                      <span className="text-muted-foreground">
-                        Pilih tanggal
-                      </span>
-                    )}
+                    {safeFormatDate(coaData.analysisDateEnd, "PPP")}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
-                    selected={coaData.analysisDateEnd}
-                    onSelect={(date) =>
-                      handleCoaChange("analysisDateEnd", date)
-                    }
+                    selected={coaData.analysisDateEnd ? new Date(coaData.analysisDateEnd) : undefined}
+                    onSelect={(date) => handleCoaChange("analysisDateEnd", date)}
                     initialFocus
                   />
                 </PopoverContent>
               </Popover>
             </div>
-
             <div>
-              <Label className="text-sm font-medium text-foreground">
-                Report Date
-              </Label>
+              <Label className="text-sm font-medium text-foreground">Report Date</Label>
               <Input
                 readOnly
                 value={coaData.reportDate}
@@ -270,30 +215,21 @@ export function CoverForm({
         </div>
 
         <div>
-          <Label className="text-sm font-medium text-foreground">
-            Pengesahan
-          </Label>
+          <Label className="text-sm font-medium text-foreground">Pengesahan</Label>
           <div className="p-4 mt-2 grid grid-cols-1 md:grid-cols-2 gap-6 rounded-md border border-border">
             <div>
-              <Label
-                htmlFor="directorName"
-                className="text-sm font-medium text-foreground"
-              >
+              <Label htmlFor="directorName" className="text-sm font-medium text-foreground">
                 Nama Direktur Utama
               </Label>
               <Input
                 id="directorName"
                 value={coaData.directorName}
-                onChange={(e) =>
-                  handleCoaChange("directorName", e.target.value)
-                }
+                onChange={(e) => handleCoaChange("directorName", e.target.value)}
                 className="mt-1 bg-transparent border border-input text-foreground"
               />
             </div>
             <div>
-              <Label className="text-sm font-medium text-foreground">
-                Tanda Tangan Digital (PNG)
-              </Label>
+              <Label className="text-sm font-medium text-foreground">Tanda Tangan Digital (PNG)</Label>
               <div className="mt-1 flex items-center gap-4">
                 <Input
                   id="signature-upload"
@@ -302,7 +238,6 @@ export function CoverForm({
                   onChange={onFileChange}
                   className="flex-1 file:text-foreground"
                 />
-
                 {coaData.signatureUrl && (
                   <div className="h-10 w-20 p-1 rounded border border-border bg-white flex items-center justify-center">
                     <Image
@@ -320,14 +255,9 @@ export function CoverForm({
               <Switch
                 id="kan-logo"
                 checked={coaData.showKanLogo}
-                onCheckedChange={(checked) =>
-                  handleCoaChange("showKanLogo", checked)
-                }
+                onCheckedChange={(checked) => handleCoaChange("showKanLogo", checked)}
               />
-              <Label
-                htmlFor="kan-logo"
-                className="text-sm font-medium text-foreground"
-              >
+              <Label htmlFor="kan-logo" className="text-sm font-medium text-foreground">
                 Tampilkan Logo KAN di Dokumen
               </Label>
             </div>

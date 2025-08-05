@@ -1,4 +1,6 @@
 import React from "react";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
 
 interface RincianUji {
   id: string;
@@ -25,22 +27,16 @@ interface FppsDocumentProps {
 
 export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
   ({ data }, ref) => {
-    // Fungsi untuk format tanggal (bisa ditaruh di luar jika dipakai di banyak tempat)
     const formatDate = (dateString: string) => {
       if (!dateString) return ".........................";
       try {
         const date = new Date(dateString);
-        // Cek apakah tanggal valid
-        if (isNaN(date.getTime())) {
-          return dateString; // Kembalikan string asli jika format tidak dikenali
-        }
+        if (isNaN(date.getTime())) return dateString;
         return new Intl.DateTimeFormat('id-ID', {
-          day: '2-digit',
-          month: 'long',
-          year: 'numeric',
+          day: '2-digit', month: 'long', year: 'numeric',
         }).format(date);
       } catch (e) {
-        return dateString; // Kembalikan string asli jika ada error
+        return dateString;
       }
     };
 
@@ -156,7 +152,7 @@ export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
           </div>
         </div>
 
-        {/* === BAGIAN RINCIAN UJI (TANPA BARIS KOSONG) === */}
+        {/* === BAGIAN RINCIAN UJI === */}
         <div className="mt-2">
           <table className="w-full border-collapse border border-black text-xs">
             <thead className="font-bold text-center">
@@ -178,124 +174,127 @@ export const FppsDocument = React.forwardRef<HTMLDivElement, FppsDocumentProps>(
             <tbody>
               {data.rincian.map((item, index) => (
                 <tr key={item.id}>
-                  <td className="border-r border-b border-black p-1 text-center align-top">
-                    {index + 1}
-                  </td>
+                  <td className="border-r border-b border-black p-1 text-center align-top">{index + 1}</td>
                   <td className="border-r border-b border-black p-1 align-top">{item.id}</td>
                   <td className="border-r border-b border-black p-1 align-top">{item.area}</td>
-                  <td className="border-r border-b border-black p-1 text-center align-top">
-                    {item.matriks}
-                  </td>
-                  <td className="border-r border-b border-black p-1 align-top whitespace-pre-wrap">
-                    {item.parameter}
-                  </td>
-                  <td className="border-r border-b border-black p-1 align-top whitespace-pre-wrap">
-                    {item.regulasi}
-                  </td>
-                  <td className="border-b border-black p-1 text-center align-top">
-                    {item.metode}
-                  </td>
+                  <td className="border-r border-b border-black p-1 text-center align-top">{item.matriks}</td>
+                  <td className="border-r border-b border-black p-1 align-top whitespace-pre-wrap">{item.parameter}</td>
+                  <td className="border-r border-b border-black p-1 align-top whitespace-pre-wrap">{item.regulasi}</td>
+                  <td className="border-b border-black p-1 text-center align-top">{item.metode}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        
+    
+        <div className="mt-4">
+          {/* Judul ini sekarang di luar, berlaku untuk kedua kolom di bawahnya */}
+          <p className="text-left text-[10px] mb-1">
+            DIISI OLEH PETUGAS ADMINISTRASI LABORATORIUM
+          </p>
 
-        {/* === BAGIAN BAWAH & TANDA TANGAN === */}
-        <div className="mt-2">
-            <div className="w-full">
-                <p className="text-left text-[10px] font-bold">II. PENERIMAAN SAMPEL / CONTOH UJI (DIISI OLEH PETUGAS ADMINISTRASI LAB)</p>
-                <table className="w-1/2 border-collapse border border-black float-left mr-4">
-                     <thead>
-                       <tr className="font-bold text-center">
-                         <td className="border border-black p-1 w-[5%]">No.</td>
-                         <td className="border border-black p-1 w-[45%]">Uraian</td>
-                         <td className="border border-black p-1 w-[25%]">Kondisi Contoh</td>
-                         <td className="border border-black p-1 w-[25%]">Keterangan</td>
-                       </tr>
-                     </thead>
-                     <tbody>
-                       <tr>
-                         <td className="border border-black p-1 text-center">1)</td>
-                         <td className="border border-black p-1">Jumlah</td>
-                         <td className="border border-black p-1 text-center">Cukup / Tidak</td>
-                         <td className="border border-black p-1 h-6"></td>
-                       </tr>
-                       <tr>
-                         <td className="border border-black p-1 text-center">2)</td>
-                         <td className="border border-black p-1">Kondisi</td>
-                         <td className="border border-black p-1 text-center">Baik / Tidak</td>
-                         <td className="border border-black p-1 h-6"></td>
-                       </tr>
-                       <tr>
-                         <td className="border border-black p-1 text-center">3)</td>
-                         <td className="border border-black p-1">Tempat contoh uji / wadah</td>
-                         <td className="border border-black p-1 text-center">Baik / Tidak</td>
-                         <td className="border border-black p-1 h-6"></td>
-                       </tr>
-                     </tbody>
-                </table>
-
-                <p className="font-bold text-left">III. KAJI ULANG PERMINTAAN PENGUJIAN</p>
-                <table className="w-auto border-collapse border border-black">
-                     <tbody>
-                       <tr>
-                         <td className="border border-black p-1 text-center">1)</td>
-                         <td className="border border-black p-1">Kemampuan SDM</td>
-                         <td className="border border-black p-1 text-center">:</td>
-                         <td className="border border-black p-1">YA / TIDAK</td>
-                       </tr>
-                       <tr>
-                         <td className="border border-black p-1 text-center">2)</td>
-                         <td className="border border-black p-1">Kesesuaian Metode</td>
-                         <td className="border border-black p-1 text-center">:</td>
-                         <td className="border border-black p-1">YA / TIDAK</td>
-                       </tr>
-                       <tr>
-                         <td className="border border-black p-1 text-center">3)</td>
-                         <td className="border border-black p-1">Kemampuan Peralatan</td>
-                         <td className="border border-black p-1 text-center">:</td>
-                         <td className="border border-black p-1">YA / TIDAK</td>
-                       </tr>
-                       <tr>
-                         <td className="border border-black p-1 text-center">4)</td>
-                         <td className="border border-black p-1">Kesimpulan</td>
-                         <td className="border border-black p-1 text-center">:</td>
-                         <td className="border border-black p-1">BISA / TIDAK BISA</td>
-                       </tr>
-                     </tbody>
-                </table>
+          <div className="flex items-start gap-4">
+            {/* Kolom Kiri */}
+            <div className="w-1/2">
+              <p className="text-left font-bold">II. PENERIMAAN SAMPEL / CONTOH UJI</p>
+              <table className="w-full border-collapse border border-black">
+                <thead className="font-bold text-center">
+                  <tr>
+                    <td className="border border-black p-1 w-[8%]">No.</td>
+                    <td className="border border-black p-1 w-[42%]">Uraian</td>
+                    <td className="border border-black p-1 w-[25%]">Kondisi Contoh</td>
+                    <td className="border border-black p-1 w-[25%]">Keterangan</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border border-black p-1 text-center">1)</td>
+                    <td className="border border-black p-1">Jumlah</td>
+                    <td className="border border-black p-1 text-center">Cukup / Tidak</td>
+                    <td className="border border-black p-1 h-6"></td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-1 text-center">2)</td>
+                    <td className="border border-black p-1">Kondisi</td>
+                    <td className="border border-black p-1 text-center">Baik / Tidak</td>
+                    <td className="border border-black p-1 h-6"></td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-1 text-center">3)</td>
+                    <td className="border border-black p-1">Tempat contoh uji / wadah</td>
+                    <td className="border border-black p-1 text-center">Baik / Tidak</td>
+                    <td className="border border-black p-1 h-6"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <p className="mt-2 ml-7 underline">
+                Waktu pelaksanaan pengujian maksimum ......................... hari kerja *)
+              </p>
             </div>
 
-            <div className="clear-both pt-2">
-                <div className="border border-black h-12 w-full">
-                  <p className="ml-1">Catatan :</p>
-                </div>
+            {/* Kolom Kanan */}
+            <div className="w-1/2">
+              <p className="font-bold text-left">III. KAJI ULANG PERMINTAAN PENGUJIAN</p>
+              <table className="w-full border-collapse border border-black">
+                <tbody>
+                  <tr>
+                    <td className="border border-black p-1 w-[5%] text-center">1)</td>
+                    <td className="border border-black p-1 w-[55%]">Kemampuan SDM</td>
+                    <td className="border border-black p-1 w-[5%] text-center">:</td>
+                    <td className="border border-black p-1 w-[35%] text-left">YA / TIDAK</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-1 text-center">2)</td>
+                    <td className="border border-black p-1">Kesesuaian Metode</td>
+                    <td className="border border-black p-1 text-center">:</td>
+                    <td className="border border-black p-1 text-left">YA / TIDAK</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-1 text-center">3)</td>
+                    <td className="border border-black p-1">Kemampuan Peralatan</td>
+                    <td className="border border-black p-1 text-center">:</td>
+                    <td className="border border-black p-1 text-left">YA / TIDAK</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-1 text-center">4)</td>
+                    <td className="border border-black p-1">Kesimpulan</td>
+                    <td className="border border-black p-1 text-center">:</td>
+                    <td className="border border-black p-1 text-left">BISA / TIDAK BISA</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
+          </div>
+        </div>
+        {/* ======================================= */}
 
-          {/* Bagian Tanda Tangan */}
-          <div className="flex justify-around items-end mt-4">
+        <div className="mt-2 w-full">
+          <div className="border border-black h-12 w-full">
+            <p className="ml-1">Catatan :</p>
+          </div>
+        </div>
+
+        {/* Bagian Tanda Tangan */}
+        <div className="flex justify-around items-end mt-4">
             <div className="text-center">
               <p>PJ Teknis</p>
               <div className="h-16"></div>
               <p>(..........................................)</p>
             </div>
             <div className="text-center">
-                <p>Bekasi, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                <p>Bekasi, {formatDate(new Date().toISOString())}</p>
               <p>Pelanggan</p>
               <div className="h-16"></div>
               <p>(..........................................)</p>
             </div>
-          </div>
+        </div>
 
-          <div className="text-[10px] mt-4 space-y-1">
+        <div className="text-[10px] mt-4 space-y-1">
             <p><strong>Catatan Tambahan :</strong></p>
             <p>- Apabila terdapat perubahan yang mengakibatkan pengujian tidak dapat dilakukan atau disubkontrakkan, maka akan ada pemberitahuan dari Laboratorium DIL Kota Bekasi paling lambat 3 (tiga) hari kerja sejak Permintaan Pengujian diterima.</p>
             <p>- *) Penerbitan Certificate Of Analysis (COA) maksimal 14 (empat belas) hari kerja setelah sampel diterima.</p>
             <p className="text-[9px] mt-1">FR-7.1.1</p>
-          </div>
         </div>
       </div>
     );

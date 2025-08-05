@@ -77,7 +77,7 @@ export default function FormRincian({
     // Nomor urut untuk rincian, tetap sama
     const seq = String(index + 1).padStart(2, "0"); // -> "01"
 
-    return `${part1}-${part2}.${seq}`;
+    return `${part1}${part2}.${seq}`;
   };
   // ------------------------------------------------------------------
 

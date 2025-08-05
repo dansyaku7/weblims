@@ -17,7 +17,7 @@ interface CoaCoverDocumentProps {
     sampleTakenBy: string[];
     receiveDate: Date | undefined;
     analysisDateStart: Date | undefined;
-    analysisDateEnd: string;
+    analysisDateEnd: string | Date | undefined; // Tipe dibuat lebih fleksibel
     reportDate: string;
     signatureUrl: string | null;
     directorName: string;
@@ -34,6 +34,37 @@ const sampleTakenByOptions = [
   "Customer",
   "Third Party",
 ];
+
+// FUNGSI BANTUAN UNTUK FORMAT TANGGAL YANG AMAN
+const formatDateSafe = (date: Date | string | undefined) => {
+  if (!date) return "";
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return "";
+    return format(dateObj, "MMMM dd, yyyy", { locale: id });
+  } catch {
+    return "";
+  }
+};
+
+// FUNGSI BANTUAN UNTUK FORMAT RENTANG TANGGAL
+const formatDateRange = (startDate: Date | string | undefined, endDate: Date | string | undefined) => {
+  const formattedStart = formatDateSafe(startDate);
+  const formattedEnd = formatDateSafe(endDate);
+
+  if (formattedStart && formattedEnd) {
+    // Jika tanggalnya sama, tampilkan satu saja
+    if (formattedStart === formattedEnd) {
+        return formattedStart;
+    }
+    return `${formattedStart} to ${formattedEnd}`;
+  }
+  if (formattedStart) {
+    return formattedStart;
+  }
+  return "Tanggal tidak tersedia";
+};
+
 
 export const CoaCoverDocument = React.forwardRef<
   HTMLDivElement,
@@ -149,27 +180,24 @@ export const CoaCoverDocument = React.forwardRef<
               <div className="pt-2">{getSampleTakenByText()}</div>
             </div>
 
+            {/* ===== BAGIAN INI SUDAH DIPERBAIKI ===== */}
             <div className="grid grid-cols-[140px_10px_1fr] gap-x-1 gap-y-1.5">
               <p className="font-bold">Sample Receive Date</p>
               <p>:</p>
-              <p>
-                {data.receiveDate
-                  ? format(data.receiveDate, "MMMM dd, yyyy", { locale: id })
-                  : ""}
-              </p>
+              <p>{formatDateSafe(data.receiveDate)}</p>
+
               <p className="font-bold">Sample Analysis Date</p>
               <p>:</p>
               <p>
-                {data.analysisDateStart
-                  ? `${format(data.analysisDateStart, "MMMM dd, yyyy", {
-                      locale: id,
-                    })} to ${data.analysisDateEnd}`
-                  : ""}
+                {formatDateRange(data.analysisDateStart, data.analysisDateEnd)}
               </p>
+              
               <p className="font-bold">Report Date</p>
               <p>:</p>
               <p>{data.reportDate}</p>
             </div>
+            {/* ======================================= */}
+
           </div>
         </main>
 
