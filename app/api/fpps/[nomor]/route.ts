@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// MENGAMBIL DATA FPPS TERTENTU
-export async function GET(req, { params }) {
+// GET tidak berubah
+export async function GET(req: Request, { params }: { params: { nomor: string } }) {
   const { nomor } = params;
   try {
     const data = await prisma.fpps.findUnique({
@@ -34,8 +34,8 @@ export async function GET(req, { params }) {
   }
 }
 
-// UPDATE DATA FPPS
-export async function PUT(request, { params }) {
+// PUT tidak berubah
+export async function PUT(request: Request, { params }: { params: { nomor: string } }) {
   const { nomor } = params;
   try {
     const body = await request.json();
@@ -88,23 +88,45 @@ export async function PUT(request, { params }) {
   }
 }
 
-// MENGHAPUS DATA FPPS
-export async function DELETE(req, { params }) {
+
+// MENGHAPUS DATA FPPS (INI BAGIAN YANG DIPERBAIKI)
+export async function DELETE(req: Request, { params }: { params: { nomor: string } }) {
   const nomorToDelete = params.nomor;
+
   try {
-    await prisma.fpps.delete({
-      where: { nomorFpps: nomorToDelete },
+    // Gunakan transaksi untuk memastikan kedua operasi (hapus anak & induk) berhasil
+    const result = await prisma.$transaction(async (tx) => {
+      
+      // 1. Hapus semua 'RincianUji' yang terhubung dengan 'Fpps' ini
+      //    Kita mencari relasi 'fpps' yang memiliki 'nomorFpps' yang sesuai.
+      await tx.rincianUji.deleteMany({
+        where: {
+          fpps: {
+            nomorFpps: nomorToDelete,
+          },
+        },
+      });
+
+      // 2. Setelah 'anak'nya dihapus, baru hapus 'Fpps' induknya
+      const deletedFpps = await tx.fpps.delete({
+        where: {
+          nomorFpps: nomorToDelete,
+        },
+      });
+
+      return deletedFpps;
     });
 
-    return NextResponse.json(
-      { message: "FPPS berhasil dihapus" },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Delete FPPS Error:", error);
-    return NextResponse.json(
-      { message: "Gagal menghapus data FPPS" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: `FPPS ${result.nomorFpps} berhasil dihapus` }, { status: 200 });
+
+  } catch (error: any) {
+    console.error(`Delete FPPS Error (nomor: ${nomorToDelete}):`, error);
+    
+    // Memberikan pesan error yang lebih spesifik jika data tidak ditemukan
+    if (error.code === 'P2025') {
+        return NextResponse.json({ message: `Gagal menghapus: FPPS dengan nomor ${nomorToDelete} tidak ditemukan.` }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Gagal menghapus data FPPS dari server." }, { status: 500 });
   }
 }
