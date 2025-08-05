@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+// Tipe untuk parameter, agar lebih rapi
+interface RouteParams {
+  params: { nomor: string };
+}
+
 // GET tidak berubah
-export async function GET(req: Request, { params }: { params: { nomor: string } }) {
+export async function GET(req: Request, { params }: RouteParams) {
   const { nomor } = params;
   try {
     const data = await prisma.fpps.findUnique({
@@ -35,7 +40,7 @@ export async function GET(req: Request, { params }: { params: { nomor: string } 
 }
 
 // PUT tidak berubah
-export async function PUT(request: Request, { params }: { params: { nomor: string } }) {
+export async function PUT(request: Request, { params }: RouteParams) {
   const { nomor } = params;
   try {
     const body = await request.json();
@@ -89,29 +94,32 @@ export async function PUT(request: Request, { params }: { params: { nomor: strin
 }
 
 
-// MENGHAPUS DATA FPPS (INI BAGIAN YANG DIPERBAIKI)
-export async function DELETE(req: Request, { params }: { params: { nomor: string } }) {
-  const nomorToDelete = params.nomor;
+// DELETE (INI YANG SUDAH 100% BENAR SESUAI SKEMA)
+export async function DELETE(request: Request, { params }: RouteParams) {
+  const { nomor } = params;
 
   try {
-    // Gunakan transaksi untuk memastikan kedua operasi (hapus anak & induk) berhasil
     const result = await prisma.$transaction(async (tx) => {
       
-      // 1. Hapus semua 'RincianUji' yang terhubung dengan 'Fpps' ini
-      //    Kita mencari relasi 'fpps' yang memiliki 'nomorFpps' yang sesuai.
-      await tx.rincianUji.deleteMany({
-        where: {
-          fpps: {
-            nomorFpps: nomorToDelete,
-          },
-        },
+      const fppsToDelete = await tx.fpps.findUnique({
+        where: { nomorFpps: nomor },
+        select: { id: true },
       });
 
-      // 2. Setelah 'anak'nya dihapus, baru hapus 'Fpps' induknya
+      if (!fppsToDelete) {
+        throw new Error(`FPPS dengan nomor ${nomor} tidak ditemukan.`);
+      }
+
+      // =================================================================
+      // NAMA MODEL SUDAH DIPERBAIKI MENJADI 'rincian'
+      // SESUAI DENGAN 'model Rincian' DI schema.prisma
+      // =================================================================
+      await tx.rincian.deleteMany({
+        where: { fppsId: fppsToDelete.id },
+      });
+
       const deletedFpps = await tx.fpps.delete({
-        where: {
-          nomorFpps: nomorToDelete,
-        },
+        where: { nomorFpps: nomor },
       });
 
       return deletedFpps;
@@ -120,13 +128,11 @@ export async function DELETE(req: Request, { params }: { params: { nomor: string
     return NextResponse.json({ message: `FPPS ${result.nomorFpps} berhasil dihapus` }, { status: 200 });
 
   } catch (error: any) {
-    console.error(`Delete FPPS Error (nomor: ${nomorToDelete}):`, error);
+    console.error(`Delete FPPS Error (nomor: ${nomor}):`, error);
     
-    // Memberikan pesan error yang lebih spesifik jika data tidak ditemukan
-    if (error.code === 'P2025') {
-        return NextResponse.json({ message: `Gagal menghapus: FPPS dengan nomor ${nomorToDelete} tidak ditemukan.` }, { status: 404 });
-    }
-
-    return NextResponse.json({ message: "Gagal menghapus data FPPS dari server." }, { status: 500 });
+    return NextResponse.json(
+        { message: error.message || "Gagal menghapus data dari server." }, 
+        { status: 500 }
+    );
   }
 }
