@@ -1,32 +1,35 @@
+import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<NextResponse> {
+  // Ambil nama file dari URL, contoh: /api/upload?filename=ttd.png
+  const { searchParams } = new URL(request.url);
+  const filename = searchParams.get('filename');
+
+  // Pastikan ada nama file dan body request
+  if (!filename || !request.body) {
+    return NextResponse.json(
+      { message: 'Nama file tidak ditemukan.' },
+      { status: 400 },
+    );
+  }
+
   try {
-    const data = await request.formData();
-    const file: File | null = data.get('file') as unknown as File;
+    // Unggah file ke Vercel Blob
+    // `request.body` adalah file yang di-stream langsung
+    const blob = await put(filename, request.body, {
+      access: 'public', // Membuat file dapat diakses secara publik
+    });
 
-    if (!file) {
-      return NextResponse.json({ success: false, error: 'Tidak ada file yang diunggah.' }, { status: 400 });
-    }
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const filename = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
-    const path = join(process.cwd(), 'public', 'uploads', filename);
-    
-    await writeFile(path, buffer);
-
-    console.log(`File tersimpan di: ${path}`);
-
-    const publicUrl = `/uploads/${filename}`;
-    
-    return NextResponse.json({ success: true, url: publicUrl });
+    // `blob.url` adalah URL publik yang akan kita simpan di database
+    // Contoh: "https://<id>.public.blob.vercel-storage.com/ttd-123.png"
+    return NextResponse.json(blob);
 
   } catch (error) {
-    console.error('Upload Error:', error);
-    return NextResponse.json({ success: false, error: 'Gagal mengunggah file.' }, { status: 500 });
+    console.error('Upload Error to Vercel Blob:', error);
+    return NextResponse.json(
+      { message: 'Gagal mengunggah file ke Vercel Blob.' },
+      { status: 500 },
+    );
   }
 }

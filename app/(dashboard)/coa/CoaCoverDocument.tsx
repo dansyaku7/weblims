@@ -206,9 +206,10 @@ export const CoaCoverDocument = React.forwardRef<
         {verificationUrl && (
           <div>
             <QRCodeSVG
-              value={verificationUrl}
-              size={120} // Ukuran bisa disesuaikan, 90px sepertinya pas
-              level="H"
+              value={verificationUrl} 
+              size={512} // <-- Naikkan resolusi render (misal, 512px)
+              level="H" 
+              style={{ width: 'auto', height: '120' }}
             />
           </div>
         )}

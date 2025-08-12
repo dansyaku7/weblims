@@ -150,7 +150,6 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
           if (result.success) {
             const report = result.data;
 
-            // === PERBAIKAN 1: Semua tanggal dari DB diubah jadi objek Date ===
             const coverDataWithDates = {
               ...report.coverData,
               receiveDate: report.coverData.receiveDate ? new Date(report.coverData.receiveDate) : undefined,
@@ -158,7 +157,6 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
               analysisDateEnd: report.coverData.analysisDateEnd ? new Date(report.coverData.analysisDateEnd) : undefined,
               reportDate: report.coverData.reportDate ? new Date(report.coverData.reportDate) : undefined,
             };
-            // ===============================================================
 
             setCoaData(coverDataWithDates);
             setActiveTemplates(report.activeTemplates);
@@ -178,18 +176,15 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
   }, [searchParams, router, reportId]);
 
   useEffect(() => {
-    // Cek ini untuk mencegah kalkulasi ulang jika analysisDateEnd sudah diisi manual
     if (coaData && coaData.analysisDateStart && !coaData.analysisDateEnd) {
       const startDate = new Date(coaData.analysisDateStart);
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + 14);
 
-      // === PERBAIKAN 2: Simpan sebagai objek Date, bukan string ===
       setCoaData((prev: any) => ({
         ...prev,
         analysisDateEnd: endDate,
       }));
-      // ============================================================
     }
   }, [coaData?.analysisDateStart]);
 
@@ -213,7 +208,6 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
       const newReportId = nanoid(24);
       setReportId(newReportId);
 
-      // === PERBAIKAN 3: Semua tanggal diinisialisasi sebagai objek Date atau undefined ===
       setCoaData({
         nomorFpps: fppsData.formData.nomorFpps,
         customer: fppsData.formData.namaPelanggan,
@@ -225,14 +219,13 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
         sampleTakenBy: ["PT. Delta Indonesia Laboratory"],
         receiveDate: undefined,
         analysisDateStart: undefined,
-        analysisDateEnd: undefined, // Diubah dari ""
-        reportDate: new Date(), // Diubah dari string format
+        analysisDateEnd: undefined,
+        reportDate: new Date(),
         signatureUrl: null,
         directorName: "Drs. H. Soekardin Rachman, M.Si",
         certificateNo: "",
         showKanLogo: true,
       });
-      // =================================================================================
 
       setView("cover");
     } catch (error) {
@@ -306,24 +299,36 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
 
   const handleSignatureUpload = async (file: File) => {
     if (!file) return;
+    
     setIsLoading(true);
-    const formData = new FormData();
-    formData.append("file", file);
+    toast.info("Mengunggah tanda tangan...");
+
     try {
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const result = await response.json();
-      if (result.success) {
-        setCoaData((prev: any) => ({ ...prev, signatureUrl: result.url }));
-        toast.success("Tanda tangan berhasil diunggah!");
-      } else {
-        throw new Error(result.error || "Gagal mengunggah file.");
+      const response = await fetch(
+        `/api/upload?filename=${encodeURIComponent(file.name)}`,
+        {
+          method: 'POST',
+          body: file,
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Gagal mengunggah file.');
       }
+
+      const newBlob = await response.json();
+      
+      setCoaData((prev: any) => ({ 
+        ...prev, 
+        signatureUrl: newBlob.url 
+      }));
+
+      toast.success("Tanda tangan berhasil diunggah!");
+
     } catch (error: any) {
       console.error("Upload failed:", error);
-      toast.error(error.message);
+      toast.error(error.message || "Terjadi kesalahan saat mengunggah.");
     } finally {
       setIsLoading(false);
     }
