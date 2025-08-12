@@ -4,7 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { QRCodeCanvas } from "qrcode.react";
+import { QRCodeSVG } from "qrcode.react";
 
 interface CoaCoverDocumentProps {
   data: {
@@ -199,20 +199,30 @@ export const CoaCoverDocument = React.forwardRef<
 
         <footer className="mt-auto pt-8">
           <div className="flex justify-between items-end">
-            <div className="w-1/2 text-[8px] space-y-2">
-              {verificationUrl && (
-                <div className="mb-2">
-                  <QRCodeCanvas value={verificationUrl} size={80} level="H" />
-                </div>
-              )}
-              <div>
-                <p className="font-bold">Ruko Prima Orchard No.C3</p>
-                <p>Jl. Raya Perjuangan, Harapan Baru,</p>
-                <p>Kec. Bekasi Utara, Kota Bekasi, Jawa Barat</p>
-                <p>Telp : 021-8923 7914</p>
-                <p className="text-blue-600">www.deltaindonesialab.com</p>
-              </div>
-            </div>
+           <div className="w-1/2">
+      {/* Kita buat flex container baru di sini */}
+      <div className="flex items-end space-x-4">
+        {/* Kolom untuk QR Code */}
+        {verificationUrl && (
+          <div>
+            <QRCodeSVG
+              value={verificationUrl}
+              size={120} // Ukuran bisa disesuaikan, 90px sepertinya pas
+              level="H"
+            />
+          </div>
+        )}
+
+        {/* Kolom untuk Teks Alamat */}
+        <div className="text-[8px] space-y-px">
+          <p className="font-bold">Ruko Prima Orchard No.C3</p>
+          <p>Jl. Raya Perjuangan, Harapan Baru,</p>
+          <p>Kec. Bekasi Utara, Kota Bekasi, Jawa Barat</p>
+          <p>Telp : 021-8923 7914</p>
+          <p className="text-blue-600">www.deltaindonesialab.com</p>
+        </div>
+      </div>
+    </div>
 
             <div className="text-center text-xs w-5/12 ml-auto">
               <p>
