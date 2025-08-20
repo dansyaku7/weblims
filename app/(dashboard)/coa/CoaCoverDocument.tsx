@@ -209,7 +209,7 @@ export const CoaCoverDocument = React.forwardRef<
               value={verificationUrl} 
               size={512} // <-- Naikkan resolusi render (misal, 512px)
               level="H" 
-              style={{ width: 'auto', height: '120' }}
+              style={{ width: 'auto', height: '60' }}
             />
           </div>
         )}
