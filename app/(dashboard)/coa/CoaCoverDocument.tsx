@@ -4,7 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { QRCodeCanvas } from "qrcode.react";
+import { QRCodeCanvas } from "qrcode.react"; // <-- Perubahan 1: Impor QRCodeCanvas
 
 interface CoaCoverDocumentProps {
   data: {
@@ -18,7 +18,7 @@ interface CoaCoverDocumentProps {
     receiveDate: Date | undefined;
     analysisDateStart: Date | undefined;
     analysisDateEnd: string | Date | undefined;
-    reportDate: Date | undefined; // Tipe sudah benar
+    reportDate: Date | undefined;
     signatureUrl: string | null;
     directorName: string;
     showKanLogo: boolean;
@@ -39,7 +39,7 @@ const sampleTakenByOptions = [
 const formatDateSafe = (date: Date | string | undefined) => {
   if (!date) return "";
   try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const dateObj = typeof date === "string" ? new Date(date) : date;
     if (isNaN(dateObj.getTime())) return "";
     return format(dateObj, "MMMM dd, yyyy", { locale: id });
   } catch {
@@ -48,12 +48,15 @@ const formatDateSafe = (date: Date | string | undefined) => {
 };
 
 // FUNGSI BANTUAN UNTUK FORMAT RENTANG TANGGAL
-const formatDateRange = (startDate: Date | string | undefined, endDate: Date | string | undefined) => {
+const formatDateRange = (
+  startDate: Date | string | undefined,
+  endDate: Date | string | undefined
+) => {
   const formattedStart = formatDateSafe(startDate);
   const formattedEnd = formatDateSafe(endDate);
   if (formattedStart && formattedEnd) {
     if (formattedStart === formattedEnd) {
-        return formattedStart;
+      return formattedStart;
     }
     return `${formattedStart} to ${formattedEnd}`;
   }
@@ -187,49 +190,47 @@ export const CoaCoverDocument = React.forwardRef<
               <p>
                 {formatDateRange(data.analysisDateStart, data.analysisDateEnd)}
               </p>
-              
+
               <p className="font-bold">Report Date</p>
               <p>:</p>
-              {/* ===== INI BAGIAN YANG DIPERBAIKI ===== */}
               <p>{formatDateSafe(data.reportDate)}</p>
-              {/* ======================================= */}
             </div>
           </div>
         </main>
 
         <footer className="mt-auto pt-8">
           <div className="flex justify-between items-end">
-           <div className="w-1/2">
-      {/* Kita buat flex container baru di sini */}
-      <div className="flex items-end space-x-4">
-        {/* Kolom untuk QR Code */}
-        {verificationUrl && (
-          <div>
-            <QRCodeCanvas
-              value={verificationUrl} 
-              size={512} // <-- Naikkan resolusi render (misal, 512px)
-              level="H" 
-              style={{ width: 'auto', height: '60' }}
-            />
-          </div>
-        )}
+            <div className="w-1/2">
+              <div className="flex items-end space-x-4">
+                
+                {/* ===== BLOK QR CODE YANG SUDAH DIPERBAIKI ===== */}
+                {verificationUrl && (
+                  <div className="w-[120px] h-[120px] flex-shrink-0">
+                    <QRCodeCanvas
+                      value={verificationUrl}
+                      size={512}
+                      level="H"
+                      style={{ width: "100%", height: "100%" }}
+                    />
+                  </div>
+                )}
+                {/* ============================================= */}
 
-        {/* Kolom untuk Teks Alamat */}
-        <div className="text-[8px] space-y-px">
-          <p className="font-bold">Ruko Prima Orchard No.C3</p>
-          <p>Jl. Raya Perjuangan, Harapan Baru,</p>
-          <p>Kec. Bekasi Utara, Kota Bekasi, Jawa Barat</p>
-          <p>Telp : 021-8923 7914</p>
-          <p className="text-blue-600">www.deltaindonesialab.com</p>
-        </div>
-      </div>
-    </div>
+                {/* Kolom untuk Teks Alamat */}
+                <div className="text-[8px] space-y-px">
+                  <p className="font-bold">Ruko Prima Orchard No.C3</p>
+                  <p>Jl. Raya Perjuangan, Harapan Baru,</p>
+                  <p>Kec. Bekasi Utara, Kota Bekasi, Jawa Barat</p>
+                  <p>Telp : 021-8923 7914</p>
+                  <p className="text-blue-600">www.deltaindonesialab.com</p>
+                </div>
+              </div>
+            </div>
 
             <div className="text-center text-xs w-5/12 ml-auto">
               <p>
                 This Certificate of Analysis consist of {data.totalPages} pages
               </p>
-              {/* Menggunakan formatDateSafe juga di sini untuk konsistensi */}
               <p className="mt-1">Bekasi, {formatDateSafe(data.reportDate)}</p>
               <div className="relative h-20 w-32 my-1 mx-auto">
                 {data.signatureUrl ? (
