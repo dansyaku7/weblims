@@ -4,7 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { QRCodeCanvas } from "qrcode.react"; // <-- Perubahan 1: Impor QRCodeCanvas
+import { QRCodeCanvas } from "qrcode.react";
 
 interface CoaCoverDocumentProps {
   data: {
@@ -201,11 +201,11 @@ export const CoaCoverDocument = React.forwardRef<
         <footer className="mt-auto pt-8">
           <div className="flex justify-between items-end">
             <div className="w-1/2">
-              <div className="flex items-end space-x-4">
-                
-                {/* ===== BLOK QR CODE YANG SUDAH DIPERBAIKI ===== */}
+              {/* ===== KODE BARU DENGAN LAYOUT VERTIKAL ===== */}
+              <div className="flex flex-col space-y-4">
+                {/* Blok untuk QR Code */}
                 {verificationUrl && (
-                  <div className="w-[120px] h-[120px] flex-shrink-0">
+                  <div className="w-[120px] h-[120px]">
                     <QRCodeCanvas
                       value={verificationUrl}
                       size={512}
@@ -214,9 +214,7 @@ export const CoaCoverDocument = React.forwardRef<
                     />
                   </div>
                 )}
-                {/* ============================================= */}
-
-                {/* Kolom untuk Teks Alamat */}
+                {/* Blok untuk Teks Alamat */}
                 <div className="text-[8px] space-y-px">
                   <p className="font-bold">Ruko Prima Orchard No.C3</p>
                   <p>Jl. Raya Perjuangan, Harapan Baru,</p>
@@ -225,6 +223,7 @@ export const CoaCoverDocument = React.forwardRef<
                   <p className="text-blue-600">www.deltaindonesialab.com</p>
                 </div>
               </div>
+              {/* =========================================== */}
             </div>
 
             <div className="text-center text-xs w-5/12 ml-auto">
