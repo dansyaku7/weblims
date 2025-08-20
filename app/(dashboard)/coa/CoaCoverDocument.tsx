@@ -4,7 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { QRCodeSVG } from "qrcode.react";
+import { QRCodeCanvas } from "qrcode.react";
 
 interface CoaCoverDocumentProps {
   data: {
@@ -205,7 +205,7 @@ export const CoaCoverDocument = React.forwardRef<
         {/* Kolom untuk QR Code */}
         {verificationUrl && (
           <div>
-            <QRCodeSVG
+            <QRCodeCanvas
               value={verificationUrl} 
               size={512} // <-- Naikkan resolusi render (misal, 512px)
               level="H" 
