@@ -215,7 +215,7 @@ export default function FormDasar({
               Email PPIC
             </Label>
             <Input
-              type="email"
+              type="text"
               name="emailPpic"
               value={formData.emailPpic}
               onChange={handleChange}

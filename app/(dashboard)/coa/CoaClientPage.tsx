@@ -433,7 +433,7 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
     } else if (needsRegulationSelection.includes(type)) {
       setEditingTemplate({ templateType: type });
     } else {
-      toast.error(`Tipe template "${type}" tidak dikenali.`);
+      toast.error(`Tipe template "${type}" tidak ada.`);
       return;
     }
 
