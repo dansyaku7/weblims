@@ -6,6 +6,7 @@ import Image from "next/image";
 interface BapsDocumentProps {
   data: {
     nomorFpps: string;
+    nomorBaps: string; // Tambahkan ini di props
     perusahaan: string;
     alamat: string;
     noTelp: string;
@@ -39,28 +40,7 @@ interface BapsDocumentProps {
 
 export const BapsDocument = React.forwardRef<HTMLDivElement, BapsDocumentProps>(
   ({ data }, ref) => {
-    const generateNomorSurat = () => {
-      const bulanRomawi = [
-        "I",
-        "II",
-        "III",
-        "IV",
-        "V",
-        "VI",
-        "VII",
-        "VIII",
-        "IX",
-        "X",
-        "XI",
-        "XII",
-      ];
-      const bulan = new Date().getMonth();
-      const tahun = new Date().getFullYear();
-      const suffix = data.nomorFpps
-        ? data.nomorFpps.slice(-3).padStart(3, "0")
-        : "___";
-      return `${suffix}/DIL/${bulanRomawi[bulan]}/${tahun}/BA`;
-    };
+    // Fungsi generateNomorSurat() dihapus karena tidak diperlukan lagi
 
     return (
       <div
@@ -109,7 +89,8 @@ export const BapsDocument = React.forwardRef<HTMLDivElement, BapsDocumentProps>(
             <h1 className="text-sm font-bold underline">
               Berita Acara Pengambilan Sampel
             </h1>
-            <p>Nomor: {generateNomorSurat()}</p>
+            {/* Langsung gunakan nomorBaps dari data props */}
+            <p>Nomor: {data.nomorBaps.replace("/BAPS", "/BA")}</p>
           </div>
 
           <main className="flex-grow">
