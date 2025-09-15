@@ -39,9 +39,10 @@ export default function FormDasar({
   ) => {
     const { name, value } = e.target;
     if (name === "nomorFpps") {
-      const onlyNumber = value.startsWith("DIL-") ? value.slice(4) : value;
-      if (/^\d*$/.test(onlyNumber)) {
-        setFormData((prev) => ({ ...prev, [name]: onlyNumber }));
+      const fppsValue = value.startsWith("DIL-") ? value.slice(4) : value;
+      // Memperbolehkan input angka, huruf, dan titik
+      if (/^[\d.a-zA-Z]*$/.test(fppsValue)) {
+        setFormData((prev) => ({ ...prev, [name]: fppsValue }));
       }
     } else if (!["petugas"].includes(name)) {
       setFormData((prev) => ({ ...prev, [name]: value }));
