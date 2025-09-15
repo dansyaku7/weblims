@@ -19,11 +19,12 @@ export function CariForm({
 }: CariFormProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    const onlyNumber = inputValue.startsWith("DIL-")
+    const fppsValue = inputValue.startsWith("DIL-")
       ? inputValue.slice(4)
       : inputValue;
-    if (/^\d*$/.test(onlyNumber)) {
-      onChange(onlyNumber);
+    // Memperbolehkan input angka, huruf, dan titik
+    if (/^[\d.a-zA-Z]*$/.test(fppsValue)) {
+      onChange(fppsValue);
     }
   };
 

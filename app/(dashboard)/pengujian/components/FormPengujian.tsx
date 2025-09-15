@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-// ... (import lainnya tidak berubah)
 import {
   Card,
   CardContent,
@@ -82,9 +81,10 @@ export default function FormPengujian({
 }: FormPengujianProps) {
   const handleNomorFppsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    const onlyNumber = value.startsWith("DIL-") ? value.slice(4) : value;
-    if (/^\d*$/.test(onlyNumber)) {
-      setNomorFpps(onlyNumber);
+    const fppsValue = value.startsWith("DIL-") ? value.slice(4) : value;
+    // Memperbolehkan input angka, huruf, dan titik
+    if (/^[\d.a-zA-Z]*$/.test(fppsValue)) {
+      setNomorFpps(fppsValue);
     }
   };
 

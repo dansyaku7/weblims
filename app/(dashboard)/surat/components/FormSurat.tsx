@@ -51,9 +51,10 @@ export default function FormSurat({
 }: FormSuratProps) {
   const handleNomorFppsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    const onlyNumber = value.startsWith("DIL-") ? value.slice(4) : value;
-    if (/^\d*$/.test(onlyNumber)) {
-      setNomorSurat((prev) => ({ ...prev, nomorFpps: onlyNumber }));
+    const fppsValue = value.startsWith("DIL-") ? value.slice(4) : value;
+    // Memperbolehkan input angka, huruf, dan titik
+    if (/^[\d.a-zA-Z]*$/.test(fppsValue)) {
+      setNomorSurat((prev) => ({ ...prev, nomorFpps: fppsValue }));
     }
   };
 
