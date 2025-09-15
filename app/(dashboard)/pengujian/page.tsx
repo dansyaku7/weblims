@@ -9,6 +9,7 @@ import PreviewDialog from "./components/PreviewDialog";
 import { PengujianDocumment } from "./components/PengujianDocument";
 import { useLoading } from "@/components/context/LoadingContext";
 
+// Interface (tidak berubah)
 interface SampleRow {
   id: string;
   parameter: string;
@@ -45,6 +46,7 @@ export default function SuratPengujianPage() {
   const searchParams = useSearchParams();
   const riwayatId = searchParams.get('id');
 
+  // useEffect untuk generate nomor surat (tidak berubah)
   useEffect(() => {
     if (nomorFpps && !riwayatId) {
       const bulanRomawi = [
@@ -53,7 +55,6 @@ export default function SuratPengujianPage() {
       const bulan = new Date().getMonth();
       const tahun = new Date().getFullYear();
       
-      // --- LOGIKA NOMOR OTOMATIS DIPERBAIKI DI SINI ---
       const fppsValue = nomorFpps;
       const match = fppsValue.match(/^(\d+)(.*)$/);
       let nomorDasar = "";
@@ -66,13 +67,13 @@ export default function SuratPengujianPage() {
         nomorDasar = fppsValue.slice(-3);
       }
       setNomorSurat(`${nomorDasar}/DIL/${bulanRomawi[bulan]}/${tahun}/STP`);
-      // --- AKHIR PERBAIKAN ---
 
     } else if (!nomorFpps) {
       setNomorSurat("");
     }
   }, [nomorFpps, riwayatId]);
 
+  // Effect untuk fetch data FPPS (INI YANG DIUBAH)
   useEffect(() => {
     if (!nomorFpps || riwayatId) {
       if (!riwayatId) {
@@ -98,7 +99,7 @@ export default function SuratPengujianPage() {
             parameter: Array.isArray(sample.parameterUji)
               ? sample.parameterUji.join(", ")
               : sample.parameter || "N/A",
-            tipeSampel: "",
+            tipeSampel: sample.matriks || "", // Diambil dari properti 'matriks'
             deadline: "",
             keterangan: "",
           }));
@@ -123,6 +124,7 @@ export default function SuratPengujianPage() {
     };
   }, [nomorFpps, riwayatId]);
 
+  // useEffect untuk memuat data saat mode edit (tidak berubah)
   useEffect(() => {
     if (riwayatId) {
       const fetchEditData = async () => {
@@ -149,6 +151,7 @@ export default function SuratPengujianPage() {
     }
   }, [riwayatId, router, setIsLoading]);
 
+  // Sisa kode (handleSave, handleRequestPrint, dll) tidak ada perubahan...
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nomorFpps || !nomorSurat) {
@@ -231,7 +234,6 @@ export default function SuratPengujianPage() {
           setSignatureData={setSignatureData}
           onSubmit={handleSave} 
           onPrint={handleRequestPrint}
-          isEditMode={!!riwayatId}
         />
 
         <div className="print-only">

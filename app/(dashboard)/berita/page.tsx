@@ -17,7 +17,7 @@ import { useLoading } from "@/components/context/LoadingContext";
 
 export const dynamic = 'force-dynamic';
 
-// Interface untuk data BAPS
+// Interface (tidak ada perubahan)
 interface BapsData {
   nomorFpps: string;
   nomorBaps: string;
@@ -60,7 +60,7 @@ export default function BeritaPage() {
   const searchParams = useSearchParams();
   const riwayatId = searchParams.get('id');
 
-  // Effect untuk memuat data saat mode edit
+  // useEffect untuk memuat data saat mode edit (tidak ada perubahan)
   useEffect(() => {
     if (riwayatId) {
       const fetchEditData = async () => {
@@ -100,7 +100,6 @@ export default function BeritaPage() {
       const bulan = new Date().getMonth();
       const tahun = new Date().getFullYear();
       
-      // --- LOGIKA NOMOR OTOMATIS DIPERBAIKI DI SINI ---
       const fppsValue = data.formData.nomorFpps.replace("DIL-", "");
       const match = fppsValue.match(/^(\d+)(.*)$/);
       let nomorDasar = "";
@@ -113,7 +112,6 @@ export default function BeritaPage() {
         nomorDasar = fppsValue.slice(-3);
       }
       const nomorBaps = `${nomorDasar}/DIL/${bulanRomawi[bulan]}/${tahun}/BAPS`;
-      // --- AKHIR PERBAIKAN ---
 
       setBapsData({
         nomorFpps: data.formData.nomorFpps,
@@ -123,14 +121,16 @@ export default function BeritaPage() {
         noTelp: data.formData.noTelp,
         hariTanggal: "",
         titikPengujian: { udaraAmbien: "", emisiCerobong: "", pencahayaan: "", heatStress: "", udaraRuangKerja: "", kebauan: "", kebisingan: "", airLimbah: "" },
+        // --- PERUBAHAN DI SINI ---
         rincianUji: data.rincian.map((item: any) => ({
           id: item.id,
           lokasi: item.area,
           parameter: item.parameter,
           regulasi: item.regulasi,
-          jenisSampel: "",
+          jenisSampel: item.matriks || "", // Diambil dari data matriks
           waktuPengambilan: "",
         })),
+        // --- AKHIR PERUBAHAN ---
         penandaTangan: { pihakLab: "", signatureUrlLab: "", pihakPerusahaan: "", signatureUrlPerusahaan: "" },
       });
       toast.success("Data FPPS berhasil dimuat.");
@@ -142,6 +142,7 @@ export default function BeritaPage() {
     }
   };
   
+  // Sisa kode tidak ada perubahan...
   const handleBapsDataChange = useCallback((field: keyof BapsData, value: any) => {
       setBapsData(prev => prev ? { ...prev, [field]: value } : null);
   }, []);

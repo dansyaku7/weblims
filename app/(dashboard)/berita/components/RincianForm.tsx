@@ -35,18 +35,18 @@ export function RincianForm({ rincianUji, onChange }: RincianFormProps) {
             Regulasi: {item.regulasi}
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            {/* --- PERUBAHAN DI SINI --- */}
             <div>
               <Label className="text-sm font-medium text-foreground">
-                Jenis Sampel
+                Jenis Sampel (Otomatis)
               </Label>
-              <Input
-                name="jenisSampel"
-                value={item.jenisSampel}
-                onChange={(e) => onChange(index, e)}
-                className="bg-transparent border border-input text-foreground mt-1"
-              />
+              <p className="text-sm pt-2 text-muted-foreground min-h-[40px] flex items-center">
+                {item.jenisSampel || "-"}
+              </p>
             </div>
+            {/* --- AKHIR PERUBAHAN --- */}
+            
             <div>
               <Label className="text-sm font-medium text-foreground">
                 Waktu Pengambilan

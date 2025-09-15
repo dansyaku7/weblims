@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { PlusCircle, Printer, XCircle } from "lucide-react";
 
+// Interface (tidak berubah)
 interface Sampel {
   id: string;
   parameter: string;
@@ -79,10 +80,11 @@ export default function FormPengujian({
   onSubmit,
   onPrint,
 }: FormPengujianProps) {
+  const [masterDeadline, setMasterDeadline] = React.useState("");
+
   const handleNomorFppsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     const fppsValue = value.startsWith("DIL-") ? value.slice(4) : value;
-    // Memperbolehkan input angka, huruf, dan titik
     if (/^[\d.a-zA-Z]*$/.test(fppsValue)) {
       setNomorFpps(fppsValue);
     }
@@ -104,12 +106,25 @@ export default function FormPengujian({
 
   const handleSampelChange = (
     index: number,
-    field: keyof Sampel,
+    field: keyof Omit<Sampel, 'deadline' | 'tipeSampel'>, // tipeSampel tidak lagi diedit
     value: string
   ) => {
     const newSampelData = [...sampelData];
     newSampelData[index] = { ...newSampelData[index], [field]: value };
     setSampelData(newSampelData);
+  };
+
+  const handleMasterDeadlineChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newDeadline = e.target.value;
+    setMasterDeadline(newDeadline);
+
+    const updatedSampelData = sampelData.map((sampel) => ({
+      ...sampel,
+      deadline: newDeadline,
+    }));
+    setSampelData(updatedSampelData);
   };
 
   const handleSignatureChange = (field: keyof SignatureData, value: string) => {
@@ -201,16 +216,23 @@ export default function FormPengujian({
           </FormSection>
 
           <FormSection title="Detail Pengujian Sampel">
+            <div className="space-y-2 max-w-xs">
+              <Label htmlFor="masterDeadline">Set Semua Deadline</Label>
+              <Input
+                id="masterDeadline"
+                type="date"
+                value={masterDeadline}
+                onChange={handleMasterDeadlineChange}
+              />
+            </div>
+            
             <div className="overflow-hidden rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="min-w-[120px]">Sampel ID</TableHead>
-                    <TableHead className="min-w-[250px]">
-                      Parameter Uji
-                    </TableHead>
+                    <TableHead className="min-w-[250px]">Parameter Uji</TableHead>
                     <TableHead className="min-w-[150px]">Tipe Sampel</TableHead>
-                    <TableHead className="min-w-[150px]">Deadline</TableHead>
                     <TableHead className="min-w-[200px]">Keterangan</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -218,37 +240,10 @@ export default function FormPengujian({
                   {sampelData.length > 0 ? (
                     sampelData.map((row, index) => (
                       <TableRow key={index}>
-                        <TableCell className="font-mono text-sm">
-                          {row.id}
-                        </TableCell>
+                        <TableCell className="font-mono text-sm">{row.id}</TableCell>
                         <TableCell>{row.parameter}</TableCell>
-                        <TableCell>
-                          <Input
-                            value={row.tipeSampel}
-                            onChange={(e) =>
-                              handleSampelChange(
-                                index,
-                                "tipeSampel",
-                                e.target.value
-                              )
-                            }
-                            className="h-8"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            type="date"
-                            value={row.deadline}
-                            onChange={(e) =>
-                              handleSampelChange(
-                                index,
-                                "deadline",
-                                e.target.value
-                              )
-                            }
-                            className="h-8"
-                          />
-                        </TableCell>
+                        {/* Diubah dari Input menjadi teks biasa */}
+                        <TableCell>{row.tipeSampel}</TableCell>
                         <TableCell>
                           <Input
                             value={row.keterangan}
@@ -267,7 +262,7 @@ export default function FormPengujian({
                   ) : (
                     <TableRow>
                       <TableCell
-                        colSpan={5}
+                        colSpan={4}
                         className="py-8 text-center text-muted-foreground"
                       >
                         Data sampel akan muncul di sini.
