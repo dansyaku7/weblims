@@ -122,7 +122,13 @@ export function DataTable({
   const { setIsLoading } = useLoading();
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+    
+  // --- PERUBAHAN 1: Atur urutan default di sini ---
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "nomorFpps", desc: true }, // Urutkan berdasarkan 'nomorFpps' secara descending (terbaru di atas)
+  ]);
+  // --- AKHIR PERUBAHAN 1 ---
+  
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -171,6 +177,14 @@ export function DataTable({
       },
       size: 50,
     },
+    // --- PERUBAHAN 2: Tambahkan kolom Nomor FPPS di sini ---
+    {
+      accessorKey: "nomorFpps",
+      header: "Nomor FPPS",
+      cell: ({ row }) => row.original.nomorFpps,
+      size: 150,
+    },
+    // --- AKHIR PERUBAHAN 2 ---
     {
       accessorKey: "header",
       header: "Nama Pelanggan",
