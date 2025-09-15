@@ -9,6 +9,7 @@ import PreviewDialog from "./components/PreviewDialog";
 import { StpsDocument } from "./components/StpsDocument";
 import { useLoading } from "@/components/context/LoadingContext";
 
+// Interface untuk tipe data state
 interface NomorSuratState {
   nomorFpps: string;
   nomorStpsLengkap: string;
@@ -24,6 +25,7 @@ interface SignatureDataState {
   signatureUrl: string;
 }
 
+// Nilai awal untuk state
 const initialNomorSurat: NomorSuratState = {
   nomorFpps: "",
   nomorStpsLengkap: "",
@@ -52,6 +54,7 @@ export default function SuratPage() {
   const router = useRouter();
   const riwayatId = searchParams.get('id');
 
+  // Effect untuk generate nomor STPS (tidak ada perubahan)
   useEffect(() => {
     if (nomorSurat.nomorFpps) {
       const bulanRomawi = [
@@ -60,7 +63,6 @@ export default function SuratPage() {
       const bulan = new Date().getMonth();
       const tahun = new Date().getFullYear();
       
-      // --- LOGIKA NOMOR OTOMATIS DIPERBAIKI DI SINI ---
       const fppsValue = nomorSurat.nomorFpps;
       const match = fppsValue.match(/^(\d+)(.*)$/);
       let nomorDasar = "";
@@ -76,26 +78,28 @@ export default function SuratPage() {
         ...prev,
         nomorStpsLengkap: `${nomorDasar}/DIL/${bulanRomawi[bulan]}/${tahun}/STPS`,
       }));
-      // --- AKHIR PERBAIKAN ---
-
     } else {
       setNomorSurat((prev) => ({ ...prev, nomorStpsLengkap: "" }));
     }
   }, [nomorSurat.nomorFpps]);
 
+  // Effect untuk fetch data FPPS (INI YANG DIUBAH)
   useEffect(() => {
-    if (!nomorSurat.nomorFpps || riwayatId) return;
+    if (!nomorSurat.nomorFpps || riwayatId) return; 
     const fetchFppsData = async () => {
       try {
         const res = await fetch(`/api/fpps/DIL-${nomorSurat.nomorFpps}`);
         if (!res.ok) throw new Error("Nomor FPPS tidak ditemukan");
         const result = await res.json();
+        
+        // Mengisi data customer secara otomatis
         setCustomerData({
           hariTanggal: result.formData.tanggalMasuk || "",
           namaPelanggan: result.formData.namaPelanggan || "",
           alamat: result.formData.alamatPelanggan || "",
-          contactPerson: "",
+          contactPerson: result.formData.namaPpic || "", // Diambil dari namaPpic
         });
+
         setPetugas(result.formData.petugas || [""]);
       } catch (error) {
         console.error("Gagal mengambil data FPPS:", error);
@@ -106,6 +110,7 @@ export default function SuratPage() {
     fetchFppsData();
   }, [nomorSurat.nomorFpps, riwayatId]);
   
+  // Effect untuk fetch data riwayat jika dalam mode edit (tidak ada perubahan)
   useEffect(() => {
     if (riwayatId) {
       const fetchRiwayatData = async () => {

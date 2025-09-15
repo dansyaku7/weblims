@@ -193,13 +193,13 @@ export function DataTable({
     },
     {
       accessorKey: "ppic",
-      header: "Nama PPIC",
+      header: "Nama PIC",
       cell: ({ row }) => row.original.ppic,
       size: 180,
     },
     {
       accessorKey: "email",
-      header: "Email PPIC",
+      header: "Email PIC",
       cell: ({ row }) => row.original.email,
       size: 220,
     },
