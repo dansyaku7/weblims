@@ -9,7 +9,6 @@ import PreviewDialog from "./components/PreviewDialog";
 import { StpsDocument } from "./components/StpsDocument";
 import { useLoading } from "@/components/context/LoadingContext";
 
-// Interface untuk tipe data state
 interface NomorSuratState {
   nomorFpps: string;
   nomorStpsLengkap: string;
@@ -25,7 +24,6 @@ interface SignatureDataState {
   signatureUrl: string;
 }
 
-// Nilai awal untuk state
 const initialNomorSurat: NomorSuratState = {
   nomorFpps: "",
   nomorStpsLengkap: "",
@@ -52,9 +50,8 @@ export default function SuratPage() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const riwayatId = searchParams.get('id'); // Ambil ID dari URL
+  const riwayatId = searchParams.get('id');
 
-  // Effect untuk generate nomor STPS dari nomor FPPS
   useEffect(() => {
     if (nomorSurat.nomorFpps) {
       const bulanRomawi = [
@@ -62,20 +59,32 @@ export default function SuratPage() {
       ];
       const bulan = new Date().getMonth();
       const tahun = new Date().getFullYear();
-      const last3 = nomorSurat.nomorFpps.slice(-3);
-      const formattedNomor = last3;
+      
+      // --- LOGIKA NOMOR OTOMATIS DIPERBAIKI DI SINI ---
+      const fppsValue = nomorSurat.nomorFpps;
+      const match = fppsValue.match(/^(\d+)(.*)$/);
+      let nomorDasar = "";
+      if (match) {
+        const angkaUtama = match[1];
+        const akhiran = match[2];
+        const tigaDigitTerakhir = angkaUtama.slice(-3);
+        nomorDasar = tigaDigitTerakhir + akhiran;
+      } else {
+        nomorDasar = fppsValue.slice(-3);
+      }
       setNomorSurat((prev) => ({
         ...prev,
-        nomorStpsLengkap: `${formattedNomor}/DIL/${bulanRomawi[bulan]}/${tahun}/STPS`,
+        nomorStpsLengkap: `${nomorDasar}/DIL/${bulanRomawi[bulan]}/${tahun}/STPS`,
       }));
+      // --- AKHIR PERBAIKAN ---
+
     } else {
       setNomorSurat((prev) => ({ ...prev, nomorStpsLengkap: "" }));
     }
   }, [nomorSurat.nomorFpps]);
 
-  // Effect untuk fetch data FPPS saat membuat surat baru
   useEffect(() => {
-    if (!nomorSurat.nomorFpps || riwayatId) return; // Jangan fetch jika dalam mode edit
+    if (!nomorSurat.nomorFpps || riwayatId) return;
     const fetchFppsData = async () => {
       try {
         const res = await fetch(`/api/fpps/DIL-${nomorSurat.nomorFpps}`);
@@ -97,7 +106,6 @@ export default function SuratPage() {
     fetchFppsData();
   }, [nomorSurat.nomorFpps, riwayatId]);
   
-  // Effect untuk fetch data riwayat jika dalam mode edit
   useEffect(() => {
     if (riwayatId) {
       const fetchRiwayatData = async () => {
@@ -113,7 +121,7 @@ export default function SuratPage() {
           toast.info(`Mode Edit: Memuat data untuk ${dataForm.nomorSurat.nomorStpsLengkap}`);
         } catch (error) {
           toast.error("Gagal memuat data untuk diedit.");
-          router.push("/surat"); // Kembali jika gagal
+          router.push("/surat");
         } finally {
           setIsLoading(false);
         }
@@ -128,7 +136,7 @@ export default function SuratPage() {
     setCustomerData(initialCustomerData);
     setPetugas([""]);
     setSignatureData(initialSignatureData);
-    router.push('/surat'); // Arahkan ke halaman surat bersih setelah reset
+    router.push('/surat');
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -149,12 +157,10 @@ export default function SuratPage() {
 
     try {
       if (riwayatId) {
-        // --- MODE UPDATE ---
         await axios.put(`/api/riwayat/${riwayatId}`, riwayatPayload);
         toast.success("Dokumen berhasil diperbarui!");
-        router.push('/riwayat'); // Kembali ke halaman riwayat setelah update
+        router.push('/riwayat');
       } else {
-        // --- MODE CREATE ---
         const saveToRiwayatPromise = axios.post("/api/riwayat", riwayatPayload);
         const updateStatusPromise = axios.put(`/api/fpps/DIL-${nomorSurat.nomorFpps}`, { status: "penyuratan" });
         await Promise.all([saveToRiwayatPromise, updateStatusPromise]);
@@ -183,7 +189,7 @@ export default function SuratPage() {
         <h1 className="text-2xl font-semibold leading-tight text-foreground md:text-3xl lg:text-4xl">
           {riwayatId ? "Edit Surat Tugas" : "Surat Tugas Pengambilan Sampel"}
         </h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground md:text-base">
+        <p className="mt-2 max-w-2xl text-muted-foreground md:text-base">
           {riwayatId ? "Ubah data yang diperlukan lalu simpan." : "Isi data untuk menerbitkan STPS. Data akan ditarik dari FPPS."}
         </p>
       </div>
@@ -199,7 +205,7 @@ export default function SuratPage() {
           setSignatureData={setSignatureData}
           onSubmit={handleSave}
           onPrint={handlePrint}
-          isEditMode={!!riwayatId} // Kirim prop isEditMode
+          isEditMode={!!riwayatId}
         />
         <div className="print-only">
           <StpsDocument

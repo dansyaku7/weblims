@@ -3,13 +3,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import axios from "axios";
-import { useRouter, useSearchParams } from "next/navigation"; // Import useSearchParams
+import { useRouter, useSearchParams } from "next/navigation";
 import FormPengujian from "./components/FormPengujian";
 import PreviewDialog from "./components/PreviewDialog";
 import { PengujianDocumment } from "./components/PengujianDocument";
 import { useLoading } from "@/components/context/LoadingContext";
 
-// Interface untuk tipe data state
 interface SampleRow {
   id: string;
   parameter: string;
@@ -25,7 +24,6 @@ interface SignatureData {
   signatureUrlPj: string;
 }
 
-// Nilai awal untuk state
 const initialSignatureData: SignatureData = {
   admin: "",
   signatureUrlAdmin: "",
@@ -45,9 +43,8 @@ export default function SuratPengujianPage() {
   const { setIsLoading } = useLoading();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const riwayatId = searchParams.get('id'); // Ambil ID dari URL
+  const riwayatId = searchParams.get('id');
 
-  // Effect untuk generate nomor surat (hanya jika mode create)
   useEffect(() => {
     if (nomorFpps && !riwayatId) {
       const bulanRomawi = [
@@ -55,15 +52,27 @@ export default function SuratPengujianPage() {
       ];
       const bulan = new Date().getMonth();
       const tahun = new Date().getFullYear();
-      const last3 = nomorFpps.slice(-3);
-      const formattedNomor = last3;
-      setNomorSurat(`${formattedNomor}/DIL/${bulanRomawi[bulan]}/${tahun}/STP`);
+      
+      // --- LOGIKA NOMOR OTOMATIS DIPERBAIKI DI SINI ---
+      const fppsValue = nomorFpps;
+      const match = fppsValue.match(/^(\d+)(.*)$/);
+      let nomorDasar = "";
+      if (match) {
+        const angkaUtama = match[1];
+        const akhiran = match[2];
+        const tigaDigitTerakhir = angkaUtama.slice(-3);
+        nomorDasar = tigaDigitTerakhir + akhiran;
+      } else {
+        nomorDasar = fppsValue.slice(-3);
+      }
+      setNomorSurat(`${nomorDasar}/DIL/${bulanRomawi[bulan]}/${tahun}/STP`);
+      // --- AKHIR PERBAIKAN ---
+
     } else if (!nomorFpps) {
       setNomorSurat("");
     }
   }, [nomorFpps, riwayatId]);
 
-  // Effect untuk fetch data FPPS (hanya jika mode create)
   useEffect(() => {
     if (!nomorFpps || riwayatId) {
       if (!riwayatId) {
@@ -114,7 +123,6 @@ export default function SuratPengujianPage() {
     };
   }, [nomorFpps, riwayatId]);
 
-  // Effect untuk memuat data saat mode edit
   useEffect(() => {
     if (riwayatId) {
       const fetchEditData = async () => {
@@ -166,11 +174,9 @@ export default function SuratPengujianPage() {
 
     try {
       if (riwayatId) {
-        // --- MODE UPDATE ---
         await axios.put(`/api/riwayat/${riwayatId}`, riwayatPayload);
         toast.success("Dokumen berhasil diperbarui!");
       } else {
-        // --- MODE CREATE ---
         const updateStatusPromise = axios.put(`/api/fpps/DIL-${nomorFpps}`, {
           status: "sampling",
         });
@@ -178,7 +184,7 @@ export default function SuratPengujianPage() {
         await Promise.all([updateStatusPromise, saveToRiwayatPromise]);
         toast.success("Surat pengujian berhasil disimpan!");
       }
-      router.push('/riwayat'); // Arahkan ke riwayat setelah create atau update
+      router.push('/riwayat');
     } catch (error: any) {
       console.error("Save/Update Error:", error);
       toast.error(

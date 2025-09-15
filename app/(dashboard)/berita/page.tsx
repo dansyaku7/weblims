@@ -68,7 +68,6 @@ export default function BeritaPage() {
         try {
           const res = await axios.get(`/api/riwayat/${riwayatId}`);
           setBapsData(res.data.dataForm);
-          // Set fppsInput agar user bisa lihat nomornya, tapi form pencarian disembunyikan
           setFppsInput(res.data.dataForm.nomorFpps.replace("DIL-", ""));
           toast.info(`Mode Edit: Memuat data untuk ${res.data.nomor}`);
         } catch (error) {
@@ -100,9 +99,21 @@ export default function BeritaPage() {
       const bulanRomawi = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
       const bulan = new Date().getMonth();
       const tahun = new Date().getFullYear();
-      const last3 = data.formData.nomorFpps.slice(-3);
-      const formattedNomor = last3;
-      const nomorBaps = `${formattedNomor}/DIL/${bulanRomawi[bulan]}/${tahun}/BAPS`;
+      
+      // --- LOGIKA NOMOR OTOMATIS DIPERBAIKI DI SINI ---
+      const fppsValue = data.formData.nomorFpps.replace("DIL-", "");
+      const match = fppsValue.match(/^(\d+)(.*)$/);
+      let nomorDasar = "";
+      if (match) {
+        const angkaUtama = match[1];
+        const akhiran = match[2];
+        const tigaDigitTerakhir = angkaUtama.slice(-3);
+        nomorDasar = tigaDigitTerakhir + akhiran;
+      } else {
+        nomorDasar = fppsValue.slice(-3);
+      }
+      const nomorBaps = `${nomorDasar}/DIL/${bulanRomawi[bulan]}/${tahun}/BAPS`;
+      // --- AKHIR PERBAIKAN ---
 
       setBapsData({
         nomorFpps: data.formData.nomorFpps,
@@ -225,17 +236,17 @@ export default function BeritaPage() {
             <>
               <div className="space-y-4 rounded-lg border border-border p-4">
                 <h2 className="text-lg font-semibold">Informasi Umum</h2>
-                 <div className="space-y-2">
-                    <Label>Nomor Berita Acara</Label>
-                    <Input value={bapsData.nomorBaps} readOnly disabled />
+                  <div className="space-y-2">
+                      <Label>Nomor Berita Acara</Label>
+                      <Input value={bapsData.nomorBaps} readOnly disabled />
                   </div>
-                 <div className="space-y-2">
-                    <Label>Hari / Tanggal</Label>
-                    <Input 
-                      type="date" 
-                      value={bapsData.hariTanggal} 
-                      onChange={(e) => handleBapsDataChange('hariTanggal', e.target.value)}
-                    />
+                  <div className="space-y-2">
+                      <Label>Hari / Tanggal</Label>
+                      <Input 
+                        type="date" 
+                        value={bapsData.hariTanggal} 
+                        onChange={(e) => handleBapsDataChange('hariTanggal', e.target.value)}
+                      />
                   </div>
               </div>
 
@@ -253,8 +264,8 @@ export default function BeritaPage() {
               </div>
 
               <div className="rounded-lg border border-border p-4">
-                 <h2 className="text-lg font-semibold mb-4">Penanda Tangan</h2>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <h2 className="text-lg font-semibold mb-4">Penanda Tangan</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <Label>Pihak Laboratorium</Label>
                         <Input value={bapsData.penandaTangan.pihakLab} onChange={(e) => handlePenandaTanganChange('pihakLab', e.target.value)} />
@@ -267,7 +278,7 @@ export default function BeritaPage() {
                         <Label htmlFor="sig-perusahaan" className="text-sm text-muted-foreground">Tanda Tangan (PNG)</Label>
                         <Input id="sig-perusahaan" type="file" accept="image/png" onChange={(e) => handleSignatureUpload(e, 'signatureUrlPerusahaan')} />
                     </div>
-                 </div>
+                  </div>
               </div>
 
               <div className="flex justify-end gap-2">
