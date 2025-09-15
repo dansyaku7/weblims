@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search, Loader2 } from "lucide-react";
 
-// 1. Tambahkan userRole ke dalam interface props
 interface SearchCardProps {
   fppsInput: string;
   setFppsInput: (value: string) => void;
@@ -28,25 +27,25 @@ export function SearchCard({
   setFppsInput,
   handleCariFpps,
   isLoading,
-  userRole, // <-- 2. Terima props userRole
+  userRole,
 }: SearchCardProps) {
-
-  // 3. Cek apakah role adalah analis
   const isAnalyst = userRole?.toLowerCase() === "analis";
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!isLoading && !isAnalyst) { // Tambahkan cek !isAnalyst
+    if (!isLoading && !isAnalyst) {
       handleCariFpps();
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    const onlyNumber = value.startsWith("DIL-") ? value.slice(4) : value;
-    if (/^\d*$/.test(onlyNumber)) {
-      setFppsInput(onlyNumber);
+    const value = e.target.value.replace("DIL-", "");
+    // --- INI BAGIAN YANG DIPERBAIKI ---
+    // Izinkan input angka, huruf, dan titik
+    if (/^[\d.a-zA-Z]*$/.test(value)) {
+      setFppsInput(value);
     }
+    // --- AKHIR PERBAIKAN ---
   };
 
   return (
@@ -74,14 +73,12 @@ export function SearchCard({
                 value={`DIL-${fppsInput}`}
                 onChange={handleChange}
                 className="bg-transparent border border-input text-foreground mt-1 w-full"
-                // 4. Nonaktifkan jika loading ATAU jika dia analis
                 disabled={isLoading || isAnalyst}
               />
             </div>
 
             <Button
               type="submit"
-              // 5. Nonaktifkan jika loading, ATAU jika input kosong, ATAU jika dia analis
               disabled={isLoading || !fppsInput || isAnalyst}
               className="flex-shrink-0"
             >

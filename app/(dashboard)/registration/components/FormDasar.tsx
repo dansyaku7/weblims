@@ -198,7 +198,7 @@ export default function FormDasar({
               htmlFor="namaPpic"
               className="text-sm font-medium text-foreground"
             >
-              Nama PPIC
+              Nama PIC
             </Label>
             <Input
               name="namaPpic"
@@ -213,7 +213,7 @@ export default function FormDasar({
               htmlFor="emailPpic"
               className="text-sm font-medium text-foreground"
             >
-              Email PPIC
+              Email PIC
             </Label>
             <Input
               type="text"
