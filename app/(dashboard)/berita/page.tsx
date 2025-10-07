@@ -199,7 +199,7 @@ export default function BeritaPage() {
         await Promise.all([updatePromise, saveToRiwayatPromise]);
         toast.success("Berita Acara berhasil disimpan dan status FPPS diupdate.");
       }
-      router.push('/riwayat');
+      router.push('/berita');
     } catch (error: any) {
       console.error("Save/Update Error:", error);
       toast.error(error.response?.data?.message || "Terjadi kesalahan saat menyimpan.");

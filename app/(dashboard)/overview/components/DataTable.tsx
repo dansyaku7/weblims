@@ -80,6 +80,7 @@ import {
 } from "@/components/ui/table";
 import { useLoading } from "@/components/context/LoadingContext";
 import Link from "next/link";
+import { Input } from "@/components/ui/input";
 
 export const schema = z.object({
   id: z.string(),
@@ -122,16 +123,13 @@ export function DataTable({
   const { setIsLoading } = useLoading();
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-    
-  // --- PERUBAHAN 1: Atur urutan default di sini ---
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "nomorFpps", desc: true }, // Urutkan berdasarkan 'nomorFpps' secara descending (terbaru di atas)
+    { id: "nomorFpps", desc: true },
   ]);
-  // --- AKHIR PERUBAHAN 1 ---
-  
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
+  const [globalFilter, setGlobalFilter] = React.useState("");
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
@@ -177,14 +175,12 @@ export function DataTable({
       },
       size: 50,
     },
-    // --- PERUBAHAN 2: Tambahkan kolom Nomor FPPS di sini ---
     {
       accessorKey: "nomorFpps",
       header: "Nomor FPPS",
       cell: ({ row }) => row.original.nomorFpps,
       size: 150,
     },
-    // --- AKHIR PERUBAHAN 2 ---
     {
       accessorKey: "header",
       header: "Nama Pelanggan",
@@ -276,8 +272,10 @@ export function DataTable({
       columnVisibility,
       columnFilters,
       pagination,
+      globalFilter,
     },
     getRowId: (row) => row.id,
+    onGlobalFilterChange: setGlobalFilter,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -301,6 +299,15 @@ export function DataTable({
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center">
+        <Input
+          placeholder="Cari pelanggan atau nomor FPPS..."
+          value={globalFilter ?? ""}
+          onChange={(event) => setGlobalFilter(event.target.value)}
+          className="max-w-sm"
+        />
+      </div>
+
       <div className="overflow-hidden rounded-lg border">
         <DndContext
           collisionDetection={closestCenter}
