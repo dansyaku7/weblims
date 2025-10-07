@@ -56,6 +56,8 @@ const getTemplateDisplayName = (template: any) => {
       return "Non-Stationary Source Emission";
     case "noise":
       return "Noise";
+    case "nekton":
+      return "Nekton";
     default:
       return "Template Tidak Dikenal";
   }
