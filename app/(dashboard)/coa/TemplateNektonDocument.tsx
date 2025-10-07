@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Logo } from '@/components/logo';
 import { NektonDataSet } from './data/nekton-data';
+import { DocumentFooter } from '@/app/(dashboard)/coa/components/DocumentFooter';
 
 // Helper component untuk merender satu set data (Upstream/Downstream)
 const NektonDataSetComponent = ({ dataSet, sampleInfo }: { dataSet: NektonDataSet, sampleInfo: any }) => {
@@ -100,64 +101,68 @@ export const TemplateNektonDocument = React.forwardRef<HTMLDivElement, { data: a
     const { dataSets, sampleInfo, certificateNo, showKanLogo, totalPages, pageNumber } = data;
 
     return (
-      <div ref={ref} className="p-10 font-serif text-black bg-white relative" style={{ width: '210mm', minHeight: '297mm' }}>
+      <div ref={ref} className="p-10 font-serif text-black bg-white relative flex flex-col" style={{ width: '210mm', minHeight: '297mm' }}>
         <div className="absolute inset-25 flex items-center justify-center z-0">
           <div className="opacity-30 w-[500px] h-[500px]"><Image src="/images/logo-delta-transparan.png" alt="Logo DIL Watermark" layout="fill" objectFit="contain"/></div>
         </div>
-        <div className="relative z-10">
-          <header className="flex justify-between items-start mb-4">
-            <div className="w-36"><Logo /></div>
-            {showKanLogo && (
-              <div className="flex flex-col items-end text-right"> 
-                <div className="w-24 mb-1"><Image src="/images/kan-logo.png" alt="Logo KAN" width={100} height={45} /></div>
-                <div className="text-[7px] leading-tight font-sans mt-1 space-y-px">
-                  <p>SK-KLHK No.00161/LPJ/Labling-1/LRK/KLHK</p>
-                  <p>7-a.DEC.2023-6.DEC.2028</p>
-                  <p>Halaman {pageNumber || 2} dari {totalPages || '...'}</p>
-                </div>
+        
+        <header className="relative z-10 flex justify-between items-start mb-4">
+          <div className="w-36"><Logo /></div>
+          {showKanLogo && (
+            <div className="flex flex-col items-end text-right"> 
+              <div className="w-24 mb-1"><Image src="/images/kan-logo.png" alt="Logo KAN" width={100} height={45} /></div>
+              <div className="text-[7px] leading-tight font-sans mt-1 space-y-px">
+                <p>SK-KLHK No.00161/LPJ/Labling-1/LRK/KLHK</p>
+                <p>7-a.DEC.2023-6.DEC.2028</p>
+                <p>Halaman {pageNumber || 2} dari {totalPages || '...'}</p>
               </div>
-            )}
-          </header>
-          <main className="text-[9px]">
-            <div className="text-center my-4">
-              <h1 className="text-base font-bold tracking-wider">CERTIFICATE OF ANALYSIS (COA)</h1>
-              <p className="text-xs">Certificate No. {certificateNo || 'DIL-AABBCCDD-COA'}</p>
             </div>
-            
-            {dataSets.map((ds: NektonDataSet, index: number) => (
-                <div key={ds.id} className={index > 0 ? "mt-6" : ""}>
-                    <NektonDataSetComponent dataSet={ds} sampleInfo={sampleInfo} />
-                </div>
-            ))}
-            
-            <div className="mt-4 text-[8px] space-y-4">
-                <table className="w-full border-collapse border border-black">
-                    <thead><tr className="font-bold bg-gray-200"><td className="border border-black p-1" colSpan={2}>Diversity Index, Shannon-Wiener Value Criteria</td></tr></thead>
-                    <tbody>
-                        <tr><td className="border border-black p-1">H’ &lt; 1</td><td className="border border-black p-1">Low Diversity</td></tr>
-                        <tr><td className="border border-black p-1">1 &lt; H’ &lt; 3</td><td className="border border-black p-1">Medium Diversity</td></tr>
-                        <tr><td className="border border-black p-1">H’ &gt; 3</td><td className="border border-black p-1">High Diversity</td></tr>
-                    </tbody>
-                </table>
-                 <table className="w-full border-collapse border border-black">
-                    <thead><tr className="font-bold bg-gray-200"><td className="border border-black p-1" colSpan={2}>Equitability Index Value Criteria</td></tr></thead>
-                    <tbody>
-                        <tr><td className="border border-black p-1">E &lt; 0.4</td><td className="border border-black p-1">Low Equitability</td></tr>
-                        <tr><td className="border border-black p-1">0.4 &lt; E &lt; 0.6</td><td className="border border-black p-1">Medium Equitability</td></tr>
-                        <tr><td className="border border-black p-1">E &gt; 0.6</td><td className="border border-black p-1">High Equitability</td></tr>
-                    </tbody>
-                </table>
-                 <table className="w-full border-collapse border border-black">
-                    <thead><tr className="font-bold bg-gray-200"><td className="border border-black p-1" colSpan={2}>Domination Index Value Criteria</td></tr></thead>
-                    <tbody>
-                        <tr><td className="border border-black p-1">0.00 &lt; D &lt; 0.50</td><td className="border border-black p-1">Low Domination</td></tr>
-                        <tr><td className="border border-black p-1">0.50 &lt; D &lt; 0.75</td><td className="border border-black p-1">Medium Domination</td></tr>
-                        <tr><td className="border border-black p-1">0.75 &lt; D &lt; 1</td><td className="border border-black p-1">High Domination</td></tr>
-                    </tbody>
-                </table>
-            </div>
-          </main>
-        </div>
+          )}
+        </header>
+
+        <main className="relative z-10 text-[9px] flex-grow">
+          <div className="text-center my-4">
+            <h1 className="text-base font-bold tracking-wider">CERTIFICATE OF ANALYSIS (COA)</h1>
+            <p className="text-xs">Certificate No. {certificateNo || 'DIL-AABBCCDD-COA'}</p>
+          </div>
+          
+          {dataSets.map((ds: NektonDataSet, index: number) => (
+              <div key={ds.id} className={index > 0 ? "mt-6" : ""}>
+                  <NektonDataSetComponent dataSet={ds} sampleInfo={sampleInfo} />
+              </div>
+          ))}
+          
+          <div className="mt-4 text-[8px] space-y-4">
+              <table className="w-full border-collapse border border-black">
+                  <thead><tr className="font-bold bg-gray-200"><td className="border border-black p-1" colSpan={2}>Diversity Index, Shannon-Wiener Value Criteria</td></tr></thead>
+                  <tbody>
+                      <tr><td className="border border-black p-1">H’ &lt; 1</td><td className="border border-black p-1">Low Diversity</td></tr>
+                      <tr><td className="border border-black p-1">1 &lt; H’ &lt; 3</td><td className="border border-black p-1">Medium Diversity</td></tr>
+                      <tr><td className="border border-black p-1">H’ &gt; 3</td><td className="border border-black p-1">High Diversity</td></tr>
+                  </tbody>
+              </table>
+               <table className="w-full border-collapse border border-black">
+                  <thead><tr className="font-bold bg-gray-200"><td className="border border-black p-1" colSpan={2}>Equitability Index Value Criteria</td></tr></thead>
+                  <tbody>
+                      <tr><td className="border border-black p-1">E &lt; 0.4</td><td className="border border-black p-1">Low Equitability</td></tr>
+                      <tr><td className="border border-black p-1">0.4 &lt; E &lt; 0.6</td><td className="border border-black p-1">Medium Equitability</td></tr>
+                      <tr><td className="border border-black p-1">E &gt; 0.6</td><td className="border border-black p-1">High Equitability</td></tr>
+                  </tbody>
+              </table>
+               <table className="w-full border-collapse border border-black">
+                  <thead><tr className="font-bold bg-gray-200"><td className="border border-black p-1" colSpan={2}>Domination Index Value Criteria</td></tr></thead>
+                  <tbody>
+                      <tr><td className="border border-black p-1">0.00 &lt; D &lt; 0.50</td><td className="border border-black p-1">Low Domination</td></tr>
+                      <tr><td className="border border-black p-1">0.50 &lt; D &lt; 0.75</td><td className="border border-black p-1">Medium Domination</td></tr>
+                      <tr><td className="border border-black p-1">0.75 &lt; D &lt; 1</td><td className="border border-black p-1">High Domination</td></tr>
+                  </tbody>
+              </table>
+          </div>
+        </main>
+        
+        <footer className="relative z-10">
+          <DocumentFooter />
+        </footer>
       </div>
     );
   }

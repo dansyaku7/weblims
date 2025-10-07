@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -113,6 +113,11 @@ type ViewState =
   | "form"
   | "loading";
 
+// --- KONSTANTA UNTUK PAGE BREAK ---
+// Angka-angka ini adalah ESTIMASI dan PERLU KAMU SESUAIKAN (trial and error)
+const ROWS_PER_FIRST_PAGE = 25; // Jumlah baris di halaman pertama sebuah template
+const ROWS_PER_SUBSEQUENT_PAGE = 40; // Jumlah baris di halaman-halaman berikutnya
+
 export default function CoaClientPage({ userRole }: { userRole?: string }) {
   const { isLoading, setIsLoading } = useLoading();
   const [view, setView] = useState<ViewState>("search");
@@ -125,7 +130,7 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewNode, setPreviewNode] = useState<React.ReactNode>(null);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-
+  
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -386,8 +391,6 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
     }
   };
 
-  const totalPages = 1 + activeTemplates.length;
-
   const handleSelectTemplate = (type: string) => {
     const baseTemplate = {
       id: nanoid(),
@@ -458,7 +461,7 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
       const previewData = {
         ...coaData,
         ...template,
-        totalPages,
+        totalPages: 1 + activeTemplates.length, // use original totalPages for single preview
         pageNumber,
         reportId,
       };
@@ -533,6 +536,53 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
     return "";
   };
 
+  const documentPages = useMemo(() => {
+    const pages: any[] = [];
+    const longTableTemplates = ["surfacewater", "cleanwater", "wastewater"];
+
+    activeTemplates.forEach(template => {
+      const visibleResults = template.results.filter((p: any) => p.isVisible);
+
+      if (longTableTemplates.includes(template.templateType) && visibleResults.length > ROWS_PER_FIRST_PAGE) {
+        let currentIndex = 0;
+
+        let firstPageEndIndex = Math.min(ROWS_PER_FIRST_PAGE, visibleResults.length);
+        let firstPageChunk = visibleResults.slice(0, firstPageEndIndex);
+        
+        if (firstPageChunk.length > 1) {
+          const lastItem = firstPageChunk[firstPageChunk.length - 1];
+          const secondLastItem = firstPageChunk[firstPageChunk.length - 2];
+          if (lastItem.category && lastItem.category !== secondLastItem.category) {
+            firstPageChunk.pop();
+          }
+        }
+        pages.push({ ...template, id: nanoid(), results: firstPageChunk });
+        currentIndex = firstPageChunk.length;
+
+        while (currentIndex < visibleResults.length) {
+          let endIndex = currentIndex + ROWS_PER_SUBSEQUENT_PAGE;
+          let pageChunk = visibleResults.slice(currentIndex, endIndex);
+          
+          if (pageChunk.length > 1 && endIndex < visibleResults.length) {
+            const lastItem = pageChunk[pageChunk.length - 1];
+            const secondLastItem = pageChunk[pageChunk.length - 2];
+            if (lastItem.category && lastItem.category !== secondLastItem.category) {
+              pageChunk.pop();
+            }
+          }
+          pages.push({ ...template, id: nanoid(), results: pageChunk });
+          currentIndex += pageChunk.length;
+        }
+      } else {
+        pages.push({ ...template });
+      }
+    });
+
+    return pages;
+  }, [activeTemplates]);
+  
+  const totalPages = 1 + documentPages.length;
+
   const renderCurrentView = () => {
     switch (view) {
       case "loading":
@@ -564,7 +614,7 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
               onPreview={() =>
                 handlePreview(
                   <CoaCoverDocument
-                    data={{ ...coaData, totalPages, reportId }}
+                    data={{ ...coaData, totalPages: 1 + activeTemplates.length, reportId }}
                   />
                 )
               }
@@ -893,16 +943,17 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
           {coaData && (
             <CoaCoverDocument data={{ ...coaData, totalPages, reportId }} />
           )}
-          {activeTemplates.map((template, index) => {
+
+          {documentPages.map((pageTemplate, index) => {
             const pageNumber = index + 2;
             const fullTemplateData = {
               ...coaData,
-              ...template,
+              ...pageTemplate,
               totalPages,
               pageNumber,
               reportId,
               sampleInfo: {
-                ...template.sampleInfo,
+                ...pageTemplate.sampleInfo,
                 samplingDate: coaData.receiveDate
                   ? format(new Date(coaData.receiveDate), "MMMM dd, yyyy", {
                       locale: id,
@@ -927,58 +978,36 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
                     : "",
               },
             };
+            const renderComponent = () => {
+              switch (pageTemplate.templateType) {
+                case "odor": return <TemplateOdorDocument data={fullTemplateData} />;
+                case "illumination": return <TemplateIlluminationDocument data={fullTemplateData} />;
+                case "heatstress": return <TemplateHeatStressDocument data={fullTemplateData} />;
+                case "wastewater": return <TemplateWastewaterDocument data={fullTemplateData} />;
+                case "cleanwater": return <TemplateCleanWaterDocument data={fullTemplateData} />;
+                case "workplaceair": return <TemplateWorkplaceAirDocument data={fullTemplateData} />;
+                case "surfacewater": return <TemplateSurfaceWaterDocument data={fullTemplateData} />;
+                case "vibration": return <TemplateVibrationDocument data={fullTemplateData} />;
+                case "airambient": return <TemplateAirAmbientDocument data={fullTemplateData} />;
+                case "ssse": return <TemplateSSSEDocument data={fullTemplateData} />;
+                case "ispu": return <TemplateISPUDocument data={fullTemplateData} />;
+                case "nonsse": return <TemplateNonSSEDocument data={fullTemplateData} />;
+                case "noise": return <TemplateNoiseDocument data={fullTemplateData} />;
+                case "nekton": return <TemplateNektonDocument data={fullTemplateData} />;
+                default: return null;
+              }
+            };
             return (
-              <React.Fragment key={template.id}>
+              <React.Fragment key={pageTemplate.id}>
                 <div className="page-break"></div>
-                {template.templateType === "odor" && (
-                  <TemplateOdorDocument data={fullTemplateData} />
-                )}
-                {template.templateType === "illumination" && (
-                  <TemplateIlluminationDocument data={fullTemplateData} />
-                )}
-                {template.templateType === "heatstress" && (
-                  <TemplateHeatStressDocument data={fullTemplateData} />
-                )}
-                {template.templateType === "wastewater" && (
-                  <TemplateWastewaterDocument data={fullTemplateData} />
-                )}
-                {template.templateType === "cleanwater" && (
-                  <TemplateCleanWaterDocument data={fullTemplateData} />
-                )}
-                {template.templateType === "workplaceair" && (
-                  <TemplateWorkplaceAirDocument data={fullTemplateData} />
-                )}
-                {template.templateType === "surfacewater" && (
-                  <TemplateSurfaceWaterDocument data={fullTemplateData} />
-                )}
-                {template.templateType === "vibration" && (
-                  <TemplateVibrationDocument data={fullTemplateData} />
-                )}
-                {template.templateType === "airambient" && (
-                  <TemplateAirAmbientDocument data={fullTemplateData} />
-                )}
-                {template.templateType === "ssse" && (
-                  <TemplateSSSEDocument data={fullTemplateData} />
-                )}
-                {template.templateType === "ispu" && (
-                  <TemplateISPUDocument data={fullTemplateData} />
-                )}
-                {template.templateType === "nonsse" && (
-                  <TemplateNonSSEDocument data={fullTemplateData} />
-                )}
-                {template.templateType === "noise" && (
-                  <TemplateNoiseDocument data={fullTemplateData} />
-                )}
-                {template.templateType === "nekton" && (
-                  <TemplateNektonDocument data={fullTemplateData} />
-                )}
+                {renderComponent()}
               </React.Fragment>
             );
           })}
         </div>
       </div>
 
-      <div className="space-y-8 px-4 md:px-8 lg:px-6 pt-6">
+      <div className="space-y-8 px-4 md:px-8 lg:px-6 pt-6 no-print">
         <div>
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-foreground leading-tight">
             Certificate of Analysis (COA) Builder
