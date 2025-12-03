@@ -1,5 +1,3 @@
-// File: app/(dashboard)/library/components/ReportListClient.tsx
-
 "use client";
 
 import React, { useState } from "react";
@@ -20,17 +18,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Loader2, AlertCircle } from "lucide-react";
+// --> UPDATE 1: Import Search Icon
+import { Pencil, Trash2, Loader2, AlertCircle, Search } from "lucide-react"; 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+// --> UPDATE 2: Import Input (asumsi lo pake shadcn, kalau belum ada buat file ui/input atau pakai html biasa)
+import { Input } from "@/components/ui/input"; 
 
 const formatStatusText = (status: string) => {
   if (!status) return "Analisis";
   return status.charAt(0).toUpperCase() + status.slice(1);
 };
 
-// --> PERUBAHAN 1: Update tipe props untuk menerima userRole
 interface ReportListClientProps {
   initialReportsResult: any;
   userRole?: string;
@@ -38,21 +38,40 @@ interface ReportListClientProps {
 
 export function ReportListClient({
   initialReportsResult,
-  userRole, // <-- Terima prop userRole di sini
+  userRole,
 }: ReportListClientProps) {
   const [reports, setReports] = useState(
     initialReportsResult.success ? initialReportsResult.data : []
   );
+  // --> UPDATE 3: State untuk search query
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const [error, setError] = useState(
     !initialReportsResult.success ? initialReportsResult.error : null
   );
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const router = useRouter();
 
-  // --> PERUBAHAN 2: Buat variabel untuk mengecek role
   const isAnalyst = userRole?.toLowerCase() === "analis";
 
-  // ... (semua fungsi handleEdit, handleDelete, handleStatusChange tetap sama) ...
+  // --> UPDATE 4: Logic Filtering
+  // Kita filter report berdasarkan query SEBELUM di-render
+  const filteredReports = reports.filter((report: any) => {
+    if (!searchQuery) return true;
+    
+    const query = searchQuery.toLowerCase();
+    const customerName = report.coverData?.customer?.toLowerCase() || "";
+    const nomorFpps = report.coverData?.nomorFpps?.toLowerCase() || "";
+    
+    // Kalau analyst, mungkin cuma cari FPPS? Atau mau dua-duanya? 
+    // Gua set default cari di DUA field ini biar UX enak.
+    // Kecuali lo mau strict analyst gak boleh search nama customer (tapi aneh kalau gitu).
+    if (customerName.includes(query)) return true;
+    if (nomorFpps.includes(query)) return true;
+    
+    return false;
+  });
+
   const handleEdit = (reportId: string) => {
     router.push(`/coa?id=${reportId}`);
   };
@@ -119,7 +138,6 @@ export function ReportListClient({
     }
   };
 
-
   if (error) {
     return (
       <Alert variant="destructive">
@@ -133,17 +151,32 @@ export function ReportListClient({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Laporan Tersimpan</CardTitle>
-        <CardDescription>
-          Total {reports.length} laporan ditemukan.
-        </CardDescription>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <CardTitle>Laporan Tersimpan</CardTitle>
+                <CardDescription>
+                    {/* --> UPDATE 5: Tampilkan jumlah hasil filter, bukan total raw */}
+                    Menampilkan {filteredReports.length} dari {reports.length} laporan.
+                </CardDescription>
+            </div>
+            
+            {/* --> UPDATE 6: Search Input UI */}
+            <div className="relative w-full md:w-72">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Cari Customer atau No. FPPS..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8"
+                />
+            </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="relative w-full overflow-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                {/* --> PERUBAHAN 3: Render kolom ini secara kondisional */}
                 {!isAnalyst && <TableHead>Nama Customer</TableHead>}
                 <TableHead>No. FPPS</TableHead>
                 <TableHead>Status</TableHead>
@@ -151,10 +184,10 @@ export function ReportListClient({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {reports.length > 0 ? (
-                reports.map((report: any) => (
+              {/* --> UPDATE 7: Render filteredReports instead of reports */}
+              {filteredReports.length > 0 ? (
+                filteredReports.map((report: any) => (
                   <TableRow key={report.id}>
-                    {/* --> PERUBAHAN 4: Render sel ini secara kondisional */}
                     {!isAnalyst && (
                       <TableCell className="font-medium">
                         {report.coverData?.customer || "-"}
@@ -219,11 +252,13 @@ export function ReportListClient({
                 <TableRow>
                   <TableCell
                     key="empty-row"
-                    // --> PERUBAHAN 5: Buat colSpan dinamis
                     colSpan={isAnalyst ? 3 : 4}
                     className="text-center h-24"
                   >
-                    Belum ada laporan yang tersimpan.
+                   {/* --> UPDATE 8: Pesan kalau tidak ditemukan */}
+                    {searchQuery 
+                        ? "Tidak ada laporan yang cocok dengan pencarian." 
+                        : "Belum ada laporan yang tersimpan."}
                   </TableCell>
                 </TableRow>
               )}
