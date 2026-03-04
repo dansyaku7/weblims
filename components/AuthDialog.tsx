@@ -48,7 +48,10 @@ export const AuthDialog = () => {
 
       const userRole = res.data.user.role;
 
-      if (userRole === "ANALIS") {
+      // Logic percabangan: Super Admin dilempar ke Portal
+      if (userRole === "SUPER_ADMIN") {
+        router.push("/portal"); 
+      } else if (userRole === "ANALIS") {
         router.push("/library");
       } else {
         router.push("/overview");
