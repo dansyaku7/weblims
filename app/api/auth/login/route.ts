@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "@/lib/prisma";
-import { cookies } from "next/headers"; // <-- Import cookies
+import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
@@ -35,8 +35,9 @@ export async function POST(req: NextRequest) {
       { expiresIn: "1d" }
     );
 
-    // --> PERUBAHAN UTAMA: Simpan token ke dalam cookie
-    cookies().set("auth-token", token, {
+    // --> PERUBAHAN UTAMA: cookies() wajib di-await di Next.js 15+
+    const cookieStore = await cookies();
+    cookieStore.set("auth-token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
