@@ -5,6 +5,8 @@ import { Wifi, WifiOff, CheckCircle, AlertTriangle, Flame, RefreshCw } from "luc
 import StatCards from "./components/StatCards";
 import MonitoringTable from "./components/MonitoringTable";
 
+export const dynamic = 'force-dynamic';
+
 export default function MonitoringPage() {
   const [deviceStatus, setDeviceStatus] = useState<"ONLINE" | "OFFLINE">("OFFLINE");
   const [systemStatus, setSystemStatus] = useState<"NORMAL" | "WARNING" | "DANGER">("NORMAL");
