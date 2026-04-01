@@ -12,7 +12,6 @@ export default function MonitoringPage() {
   const [systemStatus, setSystemStatus] = useState<"NORMAL" | "WARNING" | "DANGER">("NORMAL");
   const [lastUpdate, setLastUpdate] = useState<string>("Menunggu data...");
   const [isLoading, setIsLoading] = useState(false);
-  
   const [sensorData, setSensorData] = useState<any>({});
   const [logs, setLogs] = useState<any[]>([]);
 
@@ -21,19 +20,18 @@ export default function MonitoringPage() {
     try {
       const response = await fetch('/api/sensor');
       if (!response.ok) throw new Error("Gagal fetch");
-      
+
       const data = await response.json();
       setSensorData(data.latest);
       setLogs(data.history);
 
       const lastUpdateDate = new Date(data.latest.last_update);
       const diffSeconds = (new Date().getTime() - lastUpdateDate.getTime()) / 1000;
-      
+
       setDeviceStatus(diffSeconds < 5 ? "ONLINE" : "OFFLINE");
       setLastUpdate(lastUpdateDate.toLocaleTimeString());
       setSystemStatus(data.latest.status_sistem || "NORMAL");
-
-    } catch (error) {
+    } catch {
       setDeviceStatus("OFFLINE");
     } finally {
       setIsLoading(false);
@@ -42,70 +40,105 @@ export default function MonitoringPage() {
 
   useEffect(() => {
     fetchMonitoringData();
-    const interval = setInterval(fetchMonitoringData, 2000); 
+    const interval = setInterval(fetchMonitoringData, 2000);
     return () => clearInterval(interval);
   }, []);
 
-  // Visual Overlay untuk kepanikan
-  const getBackgroundStyle = () => {
-    if (systemStatus === "DANGER") return "bg-red-950/20 shadow-[inset_0_0_150px_rgba(239,68,68,0.15)]";
-    if (systemStatus === "WARNING") return "bg-amber-950/20 shadow-[inset_0_0_150px_rgba(245,158,11,0.1)]";
-    return "bg-black";
+  const getBgStyle = () => {
+    if (systemStatus === "DANGER") return "bg-red-950/20";
+    if (systemStatus === "WARNING") return "bg-amber-950/10";
+    return "bg-[#0a0c0f]";
   };
 
   return (
-    <main className={`flex-1 space-y-6 p-6 md:p-10 min-h-screen transition-all duration-500 ${getBackgroundStyle()} text-slate-200`}>
-      
-      {/* GLOBAL ALERT BANNER */}
+    <main className={`flex-1 min-h-screen p-6 md:p-10 space-y-5 transition-colors duration-500 ${getBgStyle()} text-slate-200`}>
+
+      {/* ALERT BANNER */}
       {systemStatus === "DANGER" && (
-        <div className="w-full bg-red-600 border border-red-500 p-4 rounded-xl flex items-center justify-center gap-3 animate-pulse shadow-lg shadow-red-500/20">
-          <Flame className="h-8 w-8 text-white" />
-          <h1 className="text-white text-2xl font-black tracking-widest uppercase">BAHAYA! INDIKASI KEBAKARAN TERDETEKSI!</h1>
-          <Flame className="h-8 w-8 text-white" />
+        <div className="w-full rounded-xl border border-red-800 border-l-4 border-l-red-500 bg-red-950/40 px-5 py-3.5 flex items-center gap-3 animate-pulse">
+          <Flame className="h-5 w-5 text-red-400 flex-shrink-0" />
+          <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-red-300">
+            Bahaya! Indikasi Kebakaran Terdeteksi!
+          </span>
         </div>
       )}
 
       {systemStatus === "WARNING" && (
-        <div className="w-full bg-amber-600/90 border border-amber-500 p-3 rounded-xl flex items-center justify-center gap-3 shadow-lg shadow-amber-500/10">
-          <AlertTriangle className="h-6 w-6 text-white" />
-          <h1 className="text-white text-lg font-bold tracking-wide uppercase">WASPADA: ANOMALI GAS ATAU SUHU RUANGAN</h1>
+        <div className="w-full rounded-xl border border-amber-800 border-l-4 border-l-amber-500 bg-amber-950/30 px-5 py-3.5 flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-400 flex-shrink-0" />
+          <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-amber-300">
+            Waspada: Anomali Gas atau Suhu Ruangan
+          </span>
         </div>
       )}
 
       {systemStatus === "NORMAL" && (
-        <div className="w-full bg-emerald-950/30 border border-emerald-900/50 p-3 rounded-xl flex items-center justify-center gap-3">
-          <CheckCircle className="h-5 w-5 text-emerald-500" />
-          <h1 className="text-emerald-500 text-sm font-bold tracking-widest uppercase">Status Aman: Tidak Ada Anomali Lingkungan</h1>
+        <div className="w-full rounded-xl border border-emerald-900/50 border-l-4 border-l-emerald-500 bg-emerald-950/20 px-5 py-3 flex items-center gap-3">
+          <CheckCircle className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-500">
+            Status Aman: Tidak Ada Anomali Lingkungan
+          </span>
         </div>
       )}
 
-      <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6">
+      {/* HEADER */}
+      <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-5">
         <div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-white">Lab Monitoring <span className="text-emerald-500">Node</span></h2>
-          <p className="text-zinc-400 mt-1">Real-time deteksi anomali ruangan sensor suhu, MQ2, dan Flame.</p>
+          <h2 className="text-[26px] font-extrabold tracking-tight text-white">
+            Lab Monitoring <span className="text-emerald-400">Node</span>
+          </h2>
+          <p className="font-mono text-[11px] text-zinc-600 mt-1">
+            // real-time · suhu · mq2 · flame · 2s interval
+          </p>
         </div>
-        
-        <div className="flex flex-wrap items-center gap-4 bg-zinc-900/50 px-5 py-3 rounded-xl border border-zinc-800 backdrop-blur-sm shadow-xl">
-          <div className="flex flex-col">
-            <span className="text-zinc-500 text-xs font-medium uppercase tracking-wider mb-1">Device (ESP32)</span>
+
+        {/* STATUS BAR */}
+        <div className="flex items-center rounded-xl border border-zinc-800 bg-zinc-900/60 px-5 py-3 flex-wrap gap-y-2">
+          {/* Device */}
+          <div className="flex flex-col px-4 first:pl-0">
+            <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-zinc-600 mb-1">Device (ESP32)</span>
             {deviceStatus === "ONLINE" ? (
-              <span className="flex items-center text-emerald-500 font-bold text-sm gap-1.5"><Wifi className="h-4 w-4" /> Online</span>
+              <span className="flex items-center gap-1.5 font-mono text-xs font-semibold text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                <Wifi className="h-3 w-3" /> Online
+              </span>
             ) : (
-              <span className="flex items-center text-red-500 font-bold text-sm gap-1.5"><WifiOff className="h-4 w-4" /> Offline</span>
+              <span className="flex items-center gap-1.5 font-mono text-xs font-semibold text-red-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+                <WifiOff className="h-3 w-3" /> Offline
+              </span>
             )}
           </div>
-          <div className="h-10 w-px bg-zinc-800 mx-2 hidden sm:block"></div>
-          <div className="flex flex-col">
-            <span className="text-zinc-500 text-xs font-medium uppercase tracking-wider mb-1">System Status</span>
-            {systemStatus === "NORMAL" && <span className="flex items-center text-emerald-500 font-bold text-sm gap-1.5"><CheckCircle className="h-4 w-4" /> Normal</span>}
-            {systemStatus === "WARNING" && <span className="flex items-center text-amber-500 font-bold text-sm gap-1.5"><AlertTriangle className="h-4 w-4" /> Waspada</span>}
-            {systemStatus === "DANGER" && <span className="flex items-center text-red-500 font-bold text-sm gap-1.5 animate-pulse"><Flame className="h-4 w-4" /> KEBAKARAN</span>}
+
+          <div className="hidden sm:block h-8 w-px bg-zinc-800 mx-1" />
+
+          {/* System Status */}
+          <div className="flex flex-col px-4">
+            <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-zinc-600 mb-1">System Status</span>
+            {systemStatus === "NORMAL" && (
+              <span className="flex items-center gap-1.5 font-mono text-xs font-semibold text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Normal
+              </span>
+            )}
+            {systemStatus === "WARNING" && (
+              <span className="flex items-center gap-1.5 font-mono text-xs font-semibold text-amber-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Waspada
+              </span>
+            )}
+            {systemStatus === "DANGER" && (
+              <span className="flex items-center gap-1.5 font-mono text-xs font-semibold text-red-400 animate-pulse">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-400" /> Kebakaran
+              </span>
+            )}
           </div>
-          <div className="h-10 w-px bg-zinc-800 mx-2 hidden sm:block"></div>
-          <div className="flex flex-col">
-            <span className="text-zinc-500 text-xs font-medium uppercase tracking-wider mb-1">Update Terakhir</span>
-            <span className="flex items-center font-mono font-semibold text-zinc-300 text-sm gap-1.5">
-              <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin text-emerald-500" : ""}`} /> 
+
+          <div className="hidden sm:block h-8 w-px bg-zinc-800 mx-1" />
+
+          {/* Last Update */}
+          <div className="flex flex-col px-4">
+            <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-zinc-600 mb-1">Last Update</span>
+            <span className="flex items-center gap-1.5 font-mono text-xs text-zinc-400">
+              <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin text-emerald-400" : "text-zinc-600"}`} />
               {lastUpdate}
             </span>
           </div>
