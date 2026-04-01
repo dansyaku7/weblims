@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { randomUUID } from "crypto";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -9,9 +10,8 @@ export async function POST(req: NextRequest) {
   try {
     const { formData, rincian } = body;
 
-    // Menggunakan Transaction agar jika salah satu gagal, semua dibatalkan
     const newFpps = await prisma.$transaction(async (tx) => {
-      // 1. Buat data FPPS
+      // 1. Buat data FPPS beserta Rinciannya
       const fpps = await tx.fpps.create({
         data: {
           ...formData,
@@ -28,26 +28,24 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // 2. STRATEGI: Buat Draft Report Otomatis
-      // Karena halaman Library membaca tabel Report, kita harus inject data 
-      // Report awal di sini agar langsung muncul di UI.
-      // (Sesuaikan default value di bawah dengan skema Prisma lu)
+      // 2. Inject otomatis ke tabel Report menyesuaikan strict schema lu
       await tx.report.create({
         data: {
+          id: randomUUID(), // Wajib diisi manual karena schema tidak ada @default
           coverData: { 
             nomorFpps: fpps.nomorFpps,
-            // Tambahkan field default lain yang dibutuhkan schema json lu
           },
-          // misal: status: "DRAFT",
+          activeTemplates: [], // Wajib diisi karena schema bertipe Json (bukan Json?)
+          // Kolom 'status' tidak perlu diisi karena schema sudah punya @default(pendaftaran)
         }
       });
 
       return fpps;
     });
 
-    // 3. Hancurkan cache agar klien langsung melihat data terbaru tanpa perlu F5
-    revalidatePath('/(dashboard)/library', 'page'); 
-    // Jika path lu bukan route group, gunakan: revalidatePath('/library');
+    // 3. Clear cache halaman library agar data baru langsung muncul
+    revalidatePath('/(dashboard)/library', 'page');
+    revalidatePath('/library'); // Memastikan path reguler juga di-clear
 
     return NextResponse.json(
       { message: "FPPS dan Draft Report berhasil disimpan", data: newFpps },
@@ -61,7 +59,7 @@ export async function POST(req: NextRequest) {
       error.code === "P2002"
     ) {
       return NextResponse.json(
-        { message: `Nomor FPPS '${body.formData.nomorFpps}' sudah ada.` },
+        { message: `Nomor FPPS '${body.formData?.nomorFpps}' sudah ada.` },
         { status: 409 } 
       );
     }
