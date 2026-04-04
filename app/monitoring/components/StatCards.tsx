@@ -1,3 +1,4 @@
+// Made by SyK
 "use client";
 
 import { Thermometer, Flame, CloudFog } from "lucide-react";
@@ -79,13 +80,14 @@ function SensorCard({
 }
 
 export default function StatCards({ data }: { data: any }) {
-  const suhuRaw = data?.suhu_mentah ? parseFloat(data.suhu_mentah) : 0;
+  // SINKRONISASI KEY DATABASE (camelCase)
+  const suhuRaw = data?.suhuMentah ? parseFloat(data.suhuMentah) : 0;
   const suhu = suhuRaw.toFixed(1);
-  const ror = data?.ror_suhu ? parseFloat(data.ror_suhu).toFixed(4) : "0.0000";
-  const rorSign = data?.ror_suhu && parseFloat(data.ror_suhu) >= 0 ? "+" : "";
-  const gas = data?.gas_mentah || 0;
-  const maGas = data?.ma_gas || 0;
-  const api = data?.api_mentah ?? 4095;
+  const ror = data?.rorSuhu ? parseFloat(data.rorSuhu).toFixed(4) : "0.0000";
+  const rorSign = data?.rorSuhu && parseFloat(data.rorSuhu) >= 0 ? "+" : "";
+  const gas = data?.gasMentah || 0;
+  const maGas = data?.maGas || 0;
+  const api = data?.apiMentah ?? 4095;
   const isApiSafe = api > 1500;
 
   const suhuPct = `${Math.min(100, (suhuRaw / 60) * 100).toFixed(1)}%`;

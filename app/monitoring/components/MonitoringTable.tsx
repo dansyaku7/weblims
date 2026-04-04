@@ -1,3 +1,4 @@
+// Made by SyK
 "use client";
 
 import React from "react";
@@ -65,9 +66,10 @@ export default function MonitoringTable({ logs }: { logs: any[] }) {
               </tr>
             ) : (
               logs.map((log, index) => {
-                const dateObj = new Date(log.last_update);
-                const isWarning = log.status_sistem === "WARNING";
-                const isDanger = log.status_sistem === "DANGER";
+                // SINKRONISASI KEY DATABASE (camelCase)
+                const dateObj = new Date(log.createdAt);
+                const isWarning = log.statusSistem === "WARNING";
+                const isDanger = log.statusSistem === "DANGER";
                 return (
                   <tr
                     key={index}
@@ -79,14 +81,14 @@ export default function MonitoringTable({ logs }: { logs: any[] }) {
                       {dateObj.toLocaleTimeString()}
                     </td>
                     <td className="px-4 py-2.5 font-mono text-xs text-zinc-300">
-                      {parseFloat(log.suhu_mentah).toFixed(1)}
+                      {parseFloat(log.suhuMentah).toFixed(1)}
                     </td>
                     <td className="px-4 py-2.5 font-mono text-xs text-zinc-400">
-                      {parseFloat(log.ror_suhu).toFixed(4)}
+                      {parseFloat(log.rorSuhu).toFixed(4)}
                     </td>
-                    <td className="px-4 py-2.5 font-mono text-xs text-zinc-300">{log.gas_mentah}</td>
-                    <td className="px-4 py-2.5 font-mono text-xs text-zinc-300">{log.api_mentah}</td>
-                    <td className="px-4 py-2.5 text-right">{getStatusBadge(log.status_sistem)}</td>
+                    <td className="px-4 py-2.5 font-mono text-xs text-zinc-300">{log.gasMentah}</td>
+                    <td className="px-4 py-2.5 font-mono text-xs text-zinc-300">{log.apiMentah}</td>
+                    <td className="px-4 py-2.5 text-right">{getStatusBadge(log.statusSistem)}</td>
                   </tr>
                 );
               })

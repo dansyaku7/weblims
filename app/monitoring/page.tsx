@@ -1,11 +1,10 @@
+// Made by SyK
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { Wifi, WifiOff, CheckCircle, AlertTriangle, Flame, RefreshCw } from "lucide-react";
 import StatCards from "./components/StatCards";
 import MonitoringTable from "./components/MonitoringTable";
-
-export const dynamic = 'force-dynamic';
 
 export default function MonitoringPage() {
   const [deviceStatus, setDeviceStatus] = useState<"ONLINE" | "OFFLINE">("OFFLINE");
@@ -18,19 +17,24 @@ export default function MonitoringPage() {
   const fetchMonitoringData = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/sensor');
+      // 1. Bypass cache browser dan Vercel
+      const response = await fetch('/api/sensor', { cache: 'no-store' });
       if (!response.ok) throw new Error("Gagal fetch");
 
       const data = await response.json();
       setSensorData(data.latest);
       setLogs(data.history);
 
-      const lastUpdateDate = new Date(data.latest.last_update);
+      // 2. FIX KEY: Pakai 'createdAt', bukan 'last_update'
+      const lastUpdateDate = new Date(data.latest.createdAt);
       const diffSeconds = (new Date().getTime() - lastUpdateDate.getTime()) / 1000;
 
+      // Toleransi 5 detik, kalau ESP32 mati/telat kirim, otomatis OFFLINE
       setDeviceStatus(diffSeconds < 5 ? "ONLINE" : "OFFLINE");
       setLastUpdate(lastUpdateDate.toLocaleTimeString());
-      setSystemStatus(data.latest.status_sistem || "NORMAL");
+      
+      // 3. FIX KEY: Pakai 'statusSistem', bukan 'status_sistem'
+      setSystemStatus(data.latest.statusSistem || "NORMAL");
     } catch {
       setDeviceStatus("OFFLINE");
     } finally {
