@@ -1,10 +1,11 @@
+// Made by SyK
 // ============================================================
 // C4.5 DECISION TREE ENGINE — Full Implementation
 // Entropy, Information Gain, Split Info, Gain Ratio
 // Untuk sistem monitoring IoT deteksi kebakaran
 // ============================================================
 
-export type StatusSistem = "NORMAL" | "WARNING" | "BAHAYA";
+export type StatusSistem = "NORMAL" | "WARNING" | "DANGER";
 
 export interface SensorRecord {
   api_mentah:  number;
@@ -45,7 +46,6 @@ export interface FeatureAnalysis {
 // ============================================================
 // 1. ENTROPY
 // H(S) = -Σ p(c) * log2(p(c))
-// Mengukur ketidakmurnian dataset
 // ============================================================
 export function calculateEntropy(records: SensorRecord[]): number {
   if (records.length === 0) return 0;
@@ -64,7 +64,7 @@ export function calculateEntropy(records: SensorRecord[]): number {
 }
 
 // ============================================================
-// 2. SPLIT DATA berdasarkan threshold (fitur kontinu)
+// 2. SPLIT DATA berdasarkan threshold
 // ============================================================
 function splitByThreshold(
   records: SensorRecord[],
@@ -78,8 +78,6 @@ function splitByThreshold(
 
 // ============================================================
 // 3. INFORMATION GAIN
-// IG(S, A, t) = H(S) - Σ (|Sv|/|S|) * H(Sv)
-// Seberapa banyak entropy berkurang setelah split
 // ============================================================
 export function calculateInfoGain(
   records: SensorRecord[],
@@ -99,8 +97,6 @@ export function calculateInfoGain(
 
 // ============================================================
 // 4. SPLIT INFORMATION
-// SplitInfo(S, A, t) = -Σ (|Sv|/|S|) * log2(|Sv|/|S|)
-// Mengukur seberapa lebar split — penalty untuk fitur bercabang banyak
 // ============================================================
 export function calculateSplitInfo(
   records: SensorRecord[],
@@ -121,8 +117,6 @@ export function calculateSplitInfo(
 
 // ============================================================
 // 5. GAIN RATIO (inti C4.5)
-// GR(S, A, t) = InfoGain(S, A, t) / SplitInfo(S, A, t)
-// Menghindari bias ke fitur dengan banyak nilai unik
 // ============================================================
 export function calculateGainRatio(
   records: SensorRecord[],
@@ -138,8 +132,7 @@ export function calculateGainRatio(
 }
 
 // ============================================================
-// 6. CARI THRESHOLD TERBAIK untuk fitur kontinu
-// Coba semua nilai unik sebagai kandidat split
+// 6. CARI THRESHOLD TERBAIK
 // ============================================================
 function findBestThreshold(
   records: SensorRecord[],
@@ -153,7 +146,6 @@ function findBestThreshold(
   let bestSplitInfo = 0;
 
   for (let i = 0; i < values.length - 1; i++) {
-    // Midpoint antara dua nilai berurutan sebagai kandidat threshold
     const threshold = (values[i] + values[i + 1]) / 2;
     
     const parentEntropy = calculateEntropy(records);
@@ -178,7 +170,7 @@ function findBestThreshold(
 }
 
 // ============================================================
-// 7. ANALISIS SEMUA FITUR — lihat ranking Gain Ratio
+// 7. ANALISIS SEMUA FITUR
 // ============================================================
 export function analyzeAllFeatures(records: SensorRecord[]): FeatureAnalysis[] {
   const features: (keyof Omit<SensorRecord, "label">)[] = [
@@ -198,28 +190,25 @@ export function analyzeAllFeatures(records: SensorRecord[]): FeatureAnalysis[] {
     });
   }
 
-  // Urutkan: Gain Ratio tertinggi di atas
   return results.sort((a, b) => b.gainRatio - a.gainRatio);
 }
 
 // ============================================================
-// 8. BANGUN DECISION TREE (rekursif)
+// 8. BANGUN DECISION TREE
 // ============================================================
 const MAX_DEPTH    = 5;
-const MIN_SAMPLES  = 3; // minimal sampel untuk split
+const MIN_SAMPLES  = 3; 
 
 export function buildTree(
   records: SensorRecord[],
   depth = 0
 ): TreeNode {
-  // ── Kondisi berhenti (base case) ──
   if (records.length < MIN_SAMPLES || depth >= MAX_DEPTH) {
     return makeLeaf(records);
   }
 
   const labels = new Set(records.map(r => r.label));
   if (labels.size === 1) {
-    // Semua label sama → leaf murni
     return { isLeaf: true, label: records[0].label };
   }
 
@@ -231,7 +220,6 @@ export function buildTree(
   let bestThreshold  = 0;
   let bestGainRatio  = -Infinity;
 
-  // Cari fitur & threshold dengan Gain Ratio terbaik
   for (const feature of features) {
     const result = findBestThreshold(records, feature);
     if (result.gainRatio > bestGainRatio) {
@@ -241,14 +229,12 @@ export function buildTree(
     }
   }
 
-  // Gain Ratio terlalu kecil → tidak worth split
   if (bestGainRatio <= 0) {
     return makeLeaf(records);
   }
 
   const [left, right] = splitByThreshold(records, bestFeature, bestThreshold);
 
-  // Jika salah satu subset kosong → leaf
   if (left.length === 0 || right.length === 0) {
     return makeLeaf(records);
   }
@@ -264,7 +250,6 @@ export function buildTree(
   };
 }
 
-// Buat leaf: pilih label mayoritas
 function makeLeaf(records: SensorRecord[]): TreeNode {
   if (records.length === 0) return { isLeaf: true, label: "NORMAL" };
 
@@ -277,7 +262,7 @@ function makeLeaf(records: SensorRecord[]): TreeNode {
 }
 
 // ============================================================
-// 9. PREDIKSI — jalankan data baru lewat pohon
+// 9. PREDIKSI
 // ============================================================
 export function predict(
   node: TreeNode,
@@ -303,17 +288,16 @@ export function predict(
   return {
     status:     current.label!,
     path,
-    confidence: 85, // bisa dikembangkan dengan probabilitas leaf
+    confidence: 85,
   };
 }
 
 // ============================================================
-// 10. AUTO-LABELING — beri label otomatis ke data sensor
-// Dipakai sebelum training (jika tidak ada ground truth)
+// 10. AUTO-LABELING
 // ============================================================
 export function autoLabel(sensor: Omit<SensorRecord, "label">): StatusSistem {
   if (sensor.ror_suhu >= 0.8 || (sensor.ma_gas >= 2500 && sensor.api_mentah <= 500)) {
-    return "BAHAYA";
+    return "DANGER";
   }
   if (sensor.ror_suhu >= 0.3 || sensor.ma_gas >= 1500 || sensor.api_mentah <= 1500) {
     return "WARNING";
