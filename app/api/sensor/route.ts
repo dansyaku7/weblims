@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { buildTree, predict, TreeNode, StatusSistem, SensorRecord, autoLabel } from './c45-engine';
 
+export const dynamic = 'force-dynamic';
+
 const prisma = new PrismaClient();
 
 // ==========================================================
