@@ -28,15 +28,23 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // 2. Inject otomatis ke tabel Report menyesuaikan strict schema lu
+      // 2. Inject otomatis ke tabel Report dengan MAPPING DATA LENGKAP
       await tx.report.create({
         data: {
-          id: randomUUID(), // Wajib diisi manual karena schema tidak ada @default
+          id: randomUUID(),
           coverData: { 
             nomorFpps: fpps.nomorFpps,
+            customer: formData.namaPelanggan || "",
+            address: formData.alamatPelanggan || "",
+            phone: formData.noTelp || "",
+            contactName: formData.namaPpic || "Bapak/Ibu...",
+            email: formData.emailPpic || "",
+            subjects: [],
+            sampleTakenBy: ["PT. Delta Indonesia Laboratory"],
+            directorName: "Drs. H. Soekardin Rachman, M.Si",
+            showKanLogo: true,
           },
-          activeTemplates: [], // Wajib diisi karena schema bertipe Json (bukan Json?)
-          // Kolom 'status' tidak perlu diisi karena schema sudah punya @default(pendaftaran)
+          activeTemplates: [],
         }
       });
 
@@ -45,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Clear cache halaman library agar data baru langsung muncul
     revalidatePath('/(dashboard)/library', 'page');
-    revalidatePath('/library'); // Memastikan path reguler juga di-clear
+    revalidatePath('/library');
 
     return NextResponse.json(
       { message: "FPPS dan Draft Report berhasil disimpan", data: newFpps },

@@ -79,10 +79,12 @@ export const CoaCoverDocument = React.forwardRef<
   const verificationUrl = getVerificationUrl();
 
   const getSampleTakenByText = () => {
+    // Sabuk pengaman 1: Pastikan sampleTakenBy adalah array
+    const safeSampleTakenBy = data.sampleTakenBy || [];
     return sampleTakenByOptions.map((opt) => (
       <p key={opt} className="font-mono text-xs">
         <span className="mr-2">
-          {data.sampleTakenBy.includes(opt) ? "●" : "○"}
+          {safeSampleTakenBy.includes(opt) ? "●" : "○"}
         </span>
         {opt}
       </p>
@@ -169,8 +171,9 @@ export const CoaCoverDocument = React.forwardRef<
               <p className="font-bold self-start">Subject</p>
               <p className="self-start">:</p>
               <div>
-                {data.subjects.length > 0 ? (
-                  data.subjects.map((s) => <p key={s}>- {s}</p>)
+                {/* Sabuk pengaman 2: Pastikan subjects adalah array */}
+                {(data.subjects || []).length > 0 ? (
+                  (data.subjects || []).map((s) => <p key={s}>- {s}</p>)
                 ) : (
                   <p>-</p>
                 )}
@@ -201,9 +204,7 @@ export const CoaCoverDocument = React.forwardRef<
         <footer className="mt-auto pt-8">
           <div className="flex justify-between items-end">
             <div className="w-1/2">
-              {/* ===== KODE BARU DENGAN LAYOUT VERTIKAL ===== */}
               <div className="flex flex-col space-y-4">
-                {/* Blok untuk QR Code */}
                 {verificationUrl && (
                   <div className="w-[120px] h-[120px]">
                     <QRCodeCanvas
@@ -214,7 +215,6 @@ export const CoaCoverDocument = React.forwardRef<
                     />
                   </div>
                 )}
-                {/* Blok untuk Teks Alamat */}
                 <div className="text-[8px] space-y-px">
                   <p className="font-bold">Ruko Prima Orchard No.C3</p>
                   <p>Jl. Raya Perjuangan, Harapan Baru,</p>
@@ -223,7 +223,6 @@ export const CoaCoverDocument = React.forwardRef<
                   <p className="text-blue-600">www.deltaindonesialab.com</p>
                 </div>
               </div>
-              {/* =========================================== */}
             </div>
 
             <div className="text-center text-xs w-5/12 ml-auto">

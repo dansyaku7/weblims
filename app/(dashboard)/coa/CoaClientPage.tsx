@@ -114,7 +114,7 @@ type ViewState =
   | "loading";
 
 const ROWS_PER_FIRST_PAGE = 25;
-const ROWS_PER_SUBSEQUENT_PAGE = 38; // Saya turunkan sedikit untuk jaga-jaga
+const ROWS_PER_SUBSEQUENT_PAGE = 38;
 
 export default function CoaClientPage({ userRole }: { userRole?: string }) {
   const { isLoading, setIsLoading } = useLoading();
@@ -152,17 +152,27 @@ export default function CoaClientPage({ userRole }: { userRole?: string }) {
           const result = await response.json();
           if (result.success) {
             const report = result.data;
+            const cover = report.coverData || {}; // Sabuk pengaman
 
             const coverDataWithDates = {
-              ...report.coverData,
-              receiveDate: report.coverData.receiveDate ? new Date(report.coverData.receiveDate) : undefined,
-              analysisDateStart: report.coverData.analysisDateStart ? new Date(report.coverData.analysisDateStart) : undefined,
-              analysisDateEnd: report.coverData.analysisDateEnd ? new Date(report.coverData.analysisDateEnd) : undefined,
-              reportDate: report.coverData.reportDate ? new Date(report.coverData.reportDate) : undefined,
+              ...cover,
+              // Fallback fields untuk antisipasi skema data lama atau kosong
+              customer: cover.customer || cover.namaPelanggan || "-",
+              address: cover.address || cover.alamatPelanggan || "-",
+              phone: cover.phone || cover.noTelp || "-",
+              contactName: cover.contactName || cover.namaPpic || "-",
+              email: cover.email || cover.emailPpic || "-",
+              subjects: cover.subjects || [],
+              sampleTakenBy: cover.sampleTakenBy || [],
+              
+              receiveDate: cover.receiveDate ? new Date(cover.receiveDate) : undefined,
+              analysisDateStart: cover.analysisDateStart ? new Date(cover.analysisDateStart) : undefined,
+              analysisDateEnd: cover.analysisDateEnd ? new Date(cover.analysisDateEnd) : undefined,
+              reportDate: cover.reportDate ? new Date(cover.reportDate) : undefined,
             };
 
             setCoaData(coverDataWithDates);
-            setActiveTemplates(report.activeTemplates);
+            setActiveTemplates(report.activeTemplates || []); // Sabuk pengaman array
             setReportId(report.id);
             setView("dashboard");
           } else {

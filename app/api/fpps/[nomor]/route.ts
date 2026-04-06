@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// Tipe untuk parameter, agar lebih rapi
+// Tipe parameter sekarang harus dijanjikan sebagai Promise (aturan Next.js terbaru)
 interface RouteParams {
-  params: { nomor: string };
+  params: Promise<{ nomor: string }>;
 }
 
-// GET tidak berubah
+// ======================= GET =======================
 export async function GET(req: Request, { params }: RouteParams) {
-  const { nomor } = params;
+  // WAJIB di-await sebelum diekstrak
+  const resolvedParams = await params;
+  const { nomor } = resolvedParams;
+  
   try {
     const data = await prisma.fpps.findUnique({
       where: { nomorFpps: nomor },
@@ -39,9 +42,12 @@ export async function GET(req: Request, { params }: RouteParams) {
   }
 }
 
-// PUT tidak berubah
+// ======================= PUT =======================
 export async function PUT(request: Request, { params }: RouteParams) {
-  const { nomor } = params;
+  // WAJIB di-await sebelum diekstrak
+  const resolvedParams = await params;
+  const { nomor } = resolvedParams;
+  
   try {
     const body = await request.json();
 
@@ -93,10 +99,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 }
 
-
-// DELETE (INI YANG SUDAH 100% BENAR SESUAI SKEMA)
+// ======================= DELETE =======================
 export async function DELETE(request: Request, { params }: RouteParams) {
-  const { nomor } = params;
+  // WAJIB di-await sebelum diekstrak
+  const resolvedParams = await params;
+  const { nomor } = resolvedParams;
 
   try {
     const result = await prisma.$transaction(async (tx) => {
@@ -110,10 +117,6 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         throw new Error(`FPPS dengan nomor ${nomor} tidak ditemukan.`);
       }
 
-      // =================================================================
-      // NAMA MODEL SUDAH DIPERBAIKI MENJADI 'rincian'
-      // SESUAI DENGAN 'model Rincian' DI schema.prisma
-      // =================================================================
       await tx.rincian.deleteMany({
         where: { fppsId: fppsToDelete.id },
       });
