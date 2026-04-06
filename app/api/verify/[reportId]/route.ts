@@ -1,17 +1,16 @@
-// Lokasi file: app/api/verify/[reportId]/route.ts
-
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET(
-  request: Request,
-  // 1. UBAH 'id' MENJADI 'reportId' AGAR SESUAI NAMA FOLDER
-  { params }: { params: { reportId: string } } 
-) {
-  // 2. GUNAKAN 'reportId' UNTUK MENGAMBIL NILAI DARI PARAMS
-  const { reportId } = params;
+// Tipe params sebagai Promise sesuai aturan Next.js App Router terbaru
+interface RouteParams {
+  params: Promise<{ reportId: string }>;
+}
 
-  // Pengecekan sekarang menggunakan variabel yang benar
+export async function GET(request: Request, { params }: RouteParams) {
+  // WAJIB di-await sebelum diekstrak
+  const resolvedParams = await params;
+  const { reportId } = resolvedParams;
+
   if (!reportId) {
     return NextResponse.json(
       { success: false, error: "ID Laporan tidak boleh kosong." },
@@ -22,8 +21,8 @@ export async function GET(
   try {
     const report = await prisma.report.findFirst({
       where: {
-        // 3. GUNAKAN 'reportId' DI DALAM QUERY
         id: reportId, 
+        // Catatan: Pastikan status laporan di database lo beneran "selesai"
         status: "selesai",
       },
     });
@@ -35,12 +34,12 @@ export async function GET(
       );
     }
 
-    const coverData: any = report.coverData;
+    const coverData: any = report.coverData || {};
     const verificationData = {
-      certificateNo: coverData?.certificateNo || "N/A",
-      customer: coverData?.customer || "N/A",
-      reportDate: coverData?.reportDate || "N/A",
-      nomorFpps: coverData?.nomorFpps || "N/A",
+      certificateNo: coverData.certificateNo || "N/A",
+      customer: coverData.customer || "N/A",
+      reportDate: coverData.reportDate || "N/A",
+      nomorFpps: coverData.nomorFpps || "N/A",
     };
 
     return NextResponse.json({ success: true, data: verificationData });
