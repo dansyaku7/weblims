@@ -3,10 +3,10 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
   try {
+    const { id } = await params; // Explicitly await the params promise
     const report = await prisma.report.findUnique({
       where: { id },
     });
@@ -28,10 +28,10 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
   try {
+    const { id } = await params; // Explicitly await the params promise
     const body = await request.json();
     const updatedReport = await prisma.report.update({
       where: { id },
@@ -49,10 +49,10 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
   try {
+    const { id } = await params; // Explicitly await the params promise
     await prisma.report.delete({
       where: { id },
     });

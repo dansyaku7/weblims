@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache"; // <-- 1. IMPORT INI
+import { revalidatePath } from "next/cache";
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // 1. UBAH TIPE MENJADI PROMISE
 ) {
-  const { id } = params;
-
   try {
+    const { id } = await params; // 2. LAKUKAN AWAIT SEBELUM MENGAMBIL ID
+
     const { status } = await request.json();
     if (!status) {
       return NextResponse.json(
@@ -27,8 +27,9 @@ export async function PUT(
         throw new Error("Laporan tidak ditemukan");
       }
 
+      // Pastikan casting type ini sesuai dengan struktur JSON di database lu
       const coverData = report.coverData as { nomorFpps?: string };
-      const nomorFpps = coverData.nomorFpps;
+      const nomorFpps = coverData?.nomorFpps; // Tambahkan optional chaining untuk keamanan
 
       if (nomorFpps) {
         await tx.fpps.update({
@@ -40,12 +41,13 @@ export async function PUT(
       return report;
     });
 
-    // 2. TAMBAHKAN BARIS INI SETELAH TRANSAKSI SUKSES
+    // Revalidate library setelah transaksi sukses
     revalidatePath("/library");
 
     return NextResponse.json({ success: true, data: updatedReport });
   } catch (error: any) {
-    console.error(`API Status Update Error (id: ${id}):`, error);
+    // Memindahkan console.error ke dalam block catch agar kita tetap bisa log error meskipun ID gagal di-await
+    console.error("API Status Update Error:", error); 
     return NextResponse.json(
       { success: false, error: error.message || "Gagal mengupdate status" },
       { status: 500 }
