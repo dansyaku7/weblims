@@ -2,8 +2,14 @@ import prisma from "@/lib/prisma";
 
 export async function getAllReports() {
   try {
-    // 1. Ambil semua laporan
+    // 1. Ambil semua laporan (DITAMBAHKAN FILTER WHERE)
+    // Hanya ambil yang sudah disentuh oleh CoA Builder
     const reports = await prisma.report.findMany({
+      where: {
+        status: {
+          in: ["sertifikat", "analisis", "selesai"],
+        },
+      },
       orderBy: {
         createdAt: "desc",
       },
