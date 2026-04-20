@@ -1,0 +1,53 @@
+{
+  "isLeaf": false,
+  "feature": "ror_suhu",
+  "threshold": 1.2999999999999998,
+  "gainRatio": 0.9999999999999999,
+  "entropy": 1.5694882449983492,
+  "left": {
+    "isLeaf": false,
+    "feature": "ror_suhu",
+    "threshold": 0.095,
+    "gainRatio": 0.4763819622108324,
+    "entropy": 0.9784493292686189,
+    "left": {
+      "isLeaf": false,
+      "feature": "ma_gas",
+      "threshold": 645,
+      "gainRatio": 1,
+      "entropy": 0.8739810481273578,
+      "left": {
+        "isLeaf": true,
+        "label": "NORMAL",
+        "sampleCount": 12,
+        "labelCounts": {
+          "NORMAL": 12
+        }
+      },
+      "right": {
+        "isLeaf": true,
+        "label": "WASPADA",
+        "sampleCount": 5,
+        "labelCounts": {
+          "WASPADA": 5
+        }
+      }
+    },
+    "right": {
+      "isLeaf": true,
+      "label": "WASPADA",
+      "sampleCount": 12,
+      "labelCounts": {
+        "WASPADA": 12
+      }
+    }
+  },
+  "right": {
+    "isLeaf": true,
+    "label": "BAHAYA",
+    "sampleCount": 16,
+    "labelCounts": {
+      "BAHAYA": 16
+    }
+  }
+}

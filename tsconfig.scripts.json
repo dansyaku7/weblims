@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "outDir": "./dist-scripts",
+    "strict": false,
+    "skipLibCheck": true
+  },
+  "include": [
+    "scripts/train_c45.ts",
+    "lib/c45_engine.ts",
+    "scripts/test_accuracy.ts",
+    "scripts/test_confusion.ts",
+    "scripts/print_tree.ts"
+  ]
+}
