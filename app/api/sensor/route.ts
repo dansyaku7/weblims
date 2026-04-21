@@ -1,7 +1,7 @@
 // Made by SyK
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { predict, TreeNode, StatusSistem } from '../../lib/c45_engine'; // Pastikan path ini bener sesuai folder lu
+import { predict, TreeNode, StatusSistem } from '@/lib/c45_engine'; // Pastikan path ini bener sesuai folder lu
 import fs from 'fs';
 import path from 'path';
 
