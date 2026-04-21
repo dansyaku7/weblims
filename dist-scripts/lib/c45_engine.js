@@ -15,8 +15,8 @@ exports.autoLabel = autoLabel;
 // ============================================================
 // CONFIG
 // ============================================================
-const MAX_DEPTH = 5;
-const MIN_SAMPLES = 3;
+const MAX_DEPTH = 10; // Kasih izin pohonnya tumbuh lebih tinggi
+const MIN_SAMPLES = 1; // Paksa AI mikir walaupun datanya sisa 1
 // ============================================================
 // 1. CALCULATE ENTROPY
 // ============================================================
