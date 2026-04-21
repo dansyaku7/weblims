@@ -12,13 +12,15 @@ export default function MonitoringTable({ logs }: { logs: any[] }) {
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />Normal
         </span>
       );
-    if (status === "DANGER")
+    // 1. FIX: Ubah ke BAHAYA
+    if (status === "BAHAYA")
       return (
         <span className="inline-flex animate-pulse items-center gap-1.5 rounded-full border border-red-500/25 bg-red-500/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-red-400">
           <span className="h-1.5 w-1.5 rounded-full bg-red-400" />Bahaya
         </span>
       );
-    if (status === "WARNING")
+    // 2. FIX: Ubah ke WASPADA
+    if (status === "WASPADA")
       return (
         <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-amber-400">
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />Waspada
@@ -66,10 +68,11 @@ export default function MonitoringTable({ logs }: { logs: any[] }) {
               </tr>
             ) : (
               logs.map((log, index) => {
-                // SINKRONISASI KEY DATABASE (camelCase)
                 const dateObj = new Date(log.createdAt);
-                const isWarning = log.statusSistem === "WARNING";
-                const isDanger = log.statusSistem === "DANGER";
+                // 3. FIX: Ubah logic warna baris ke WASPADA dan BAHAYA
+                const isWarning = log.statusSistem === "WASPADA";
+                const isDanger = log.statusSistem === "BAHAYA";
+                
                 return (
                   <tr
                     key={index}

@@ -7,8 +7,9 @@ import StatCards from "./components/StatCards";
 import MonitoringTable from "./components/MonitoringTable";
 
 export default function MonitoringPage() {
+  // 1. FIX: Ubah state TypeScript ke bahasa Indonesia sesuai C4.5
   const [deviceStatus, setDeviceStatus] = useState<"ONLINE" | "OFFLINE">("OFFLINE");
-  const [systemStatus, setSystemStatus] = useState<"NORMAL" | "WARNING" | "DANGER">("NORMAL");
+  const [systemStatus, setSystemStatus] = useState<"NORMAL" | "WASPADA" | "BAHAYA">("NORMAL");
   const [lastUpdate, setLastUpdate] = useState<string>("Menunggu data...");
   const [isLoading, setIsLoading] = useState(false);
   const [sensorData, setSensorData] = useState<any>({});
@@ -17,7 +18,6 @@ export default function MonitoringPage() {
   const fetchMonitoringData = async () => {
     setIsLoading(true);
     try {
-      // 1. Bypass cache browser dan Vercel
       const response = await fetch('/api/sensor', { cache: 'no-store' });
       if (!response.ok) throw new Error("Gagal fetch");
 
@@ -25,15 +25,12 @@ export default function MonitoringPage() {
       setSensorData(data.latest);
       setLogs(data.history);
 
-      // 2. FIX KEY: Pakai 'createdAt', bukan 'last_update'
       const lastUpdateDate = new Date(data.latest.createdAt);
       const diffSeconds = (new Date().getTime() - lastUpdateDate.getTime()) / 1000;
 
-      // Toleransi 5 detik, kalau ESP32 mati/telat kirim, otomatis OFFLINE
       setDeviceStatus(diffSeconds < 5 ? "ONLINE" : "OFFLINE");
       setLastUpdate(lastUpdateDate.toLocaleTimeString());
       
-      // 3. FIX KEY: Pakai 'statusSistem', bukan 'status_sistem'
       setSystemStatus(data.latest.statusSistem || "NORMAL");
     } catch {
       setDeviceStatus("OFFLINE");
@@ -48,9 +45,10 @@ export default function MonitoringPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // 2. FIX: Sesuaikan pengecekan warna background
   const getBgStyle = () => {
-    if (systemStatus === "DANGER") return "bg-red-950/20";
-    if (systemStatus === "WARNING") return "bg-amber-950/10";
+    if (systemStatus === "BAHAYA") return "bg-red-950/20";
+    if (systemStatus === "WASPADA") return "bg-amber-950/10";
     return "bg-[#0a0c0f]";
   };
 
@@ -58,7 +56,8 @@ export default function MonitoringPage() {
     <main className={`flex-1 min-h-screen p-6 md:p-10 space-y-5 transition-colors duration-500 ${getBgStyle()} text-slate-200`}>
 
       {/* ALERT BANNER */}
-      {systemStatus === "DANGER" && (
+      {/* 3. FIX: Pengecekan kondisi banner */}
+      {systemStatus === "BAHAYA" && (
         <div className="w-full rounded-xl border border-red-800 border-l-4 border-l-red-500 bg-red-950/40 px-5 py-3.5 flex items-center gap-3 animate-pulse">
           <Flame className="h-5 w-5 text-red-400 flex-shrink-0" />
           <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-red-300">
@@ -67,7 +66,7 @@ export default function MonitoringPage() {
         </div>
       )}
 
-      {systemStatus === "WARNING" && (
+      {systemStatus === "WASPADA" && (
         <div className="w-full rounded-xl border border-amber-800 border-l-4 border-l-amber-500 bg-amber-950/30 px-5 py-3.5 flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-amber-400 flex-shrink-0" />
           <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-amber-300">
@@ -124,14 +123,15 @@ export default function MonitoringPage() {
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Normal
               </span>
             )}
-            {systemStatus === "WARNING" && (
+            {/* 4. FIX: Text indikator mini */}
+            {systemStatus === "WASPADA" && (
               <span className="flex items-center gap-1.5 font-mono text-xs font-semibold text-amber-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Waspada
               </span>
             )}
-            {systemStatus === "DANGER" && (
+            {systemStatus === "BAHAYA" && (
               <span className="flex items-center gap-1.5 font-mono text-xs font-semibold text-red-400 animate-pulse">
-                <span className="h-1.5 w-1.5 rounded-full bg-red-400" /> Kebakaran
+                <span className="h-1.5 w-1.5 rounded-full bg-red-400" /> Bahaya
               </span>
             )}
           </div>

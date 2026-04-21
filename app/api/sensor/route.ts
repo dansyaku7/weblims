@@ -1,42 +1,33 @@
 // Made by SyK
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { buildTree, predict, TreeNode, StatusSistem, SensorRecord, autoLabel, syntheticDataset } from './c45-engine';
+import { predict, TreeNode, StatusSistem } from '../../lib/c45_engine'; // Pastikan path ini bener sesuai folder lu
+import fs from 'fs';
+import path from 'path';
 
 export const dynamic = 'force-dynamic';
 const prisma = new PrismaClient();
 
 let cachedTree: TreeNode | null = null;
-let lastTrainingTime = 0;
-const RETRAIN_INTERVAL_MS = 5 * 60 * 1000; 
+let lastLoadTime = 0;
+// Reload model JSON tiap 5 menit buat jaga-jaga lu abis retraining di background
+const RELOAD_INTERVAL_MS = 5 * 60 * 1000; 
 
-async function getOrTrainTree(): Promise<TreeNode | null> {
+function getTree(): TreeNode | null {
   const now = Date.now();
-  if (cachedTree && (now - lastTrainingTime < RETRAIN_INTERVAL_MS)) return cachedTree;
+  if (cachedTree && (now - lastLoadTime < RELOAD_INTERVAL_MS)) {
+    return cachedTree;
+  }
 
   try {
-    // Kombinasi data pengalaman lab (DB) dan data teori (Simulasi)
-    const historyData = await prisma.sensorLog.findMany({ orderBy: { createdAt: 'desc' }, take: 200 });
-    const dbSet: SensorRecord[] = historyData.map(log => ({
-      api_mentah: log.apiMentah,
-      ma_gas: log.maGas,
-      ma_suhu: log.maSuhu,
-      ror_suhu: log.rorSuhu,
-      label: (log.statusSistem as StatusSistem) || autoLabel({
-        api_mentah: log.apiMentah,
-        ma_gas: log.maGas,
-        ma_suhu: log.maSuhu,
-        ror_suhu: log.rorSuhu
-      })
-    }));
-
-    const combinedSet = [...syntheticDataset, ...dbSet];
-    cachedTree = buildTree(combinedSet);
-    lastTrainingTime = now;
-    console.log(`[AI] Retrain Sukses! (Data: ${combinedSet.length})`);
+    const filePath = path.join(process.cwd(), 'data', 'model_tree.json');
+    const fileData = fs.readFileSync(filePath, 'utf8');
+    cachedTree = JSON.parse(fileData) as TreeNode;
+    lastLoadTime = now;
+    console.log("[AI] Model C4.5 Berhasil Di-load dari model_tree.json!");
     return cachedTree;
   } catch (error) {
-    console.error("[AI] Error training:", error);
+    console.error("[AI] Gagal load model_tree.json. Pastikan script train_c45.js udah dijalanin:", error);
     return cachedTree; 
   }
 }
@@ -55,21 +46,20 @@ export async function POST(request: Request) {
 
     let status_sistem: StatusSistem = "NORMAL";
 
-    // 1. FAIL-SAFE MUTLAK (Hanya untuk kondisi kiamat, jangan pakai batas sempit biar AI kerja)
+    // 1. FAIL-SAFE MUTLAK (Analog bounds)
     if (incoming.api_mentah < 1000 || incoming.ma_suhu >= 55.0) {
-      status_sistem = "DANGER";
+      status_sistem = "BAHAYA";
     } 
     else {
-      // 2. AI C4.5 MACHINE LEARNING (Fokus Skripsi Lu)
-      // Mesin bakal mengevaluasi relasi antara Suhu, Gas, dan Rate of Rise
-      const tree = await getOrTrainTree();
+      // 2. AI C4.5 PREDICTION
+      const tree = getTree();
       
       if (tree && !tree.isLeaf) { 
         status_sistem = predict(tree, incoming).status;
       } else {
-        // Fallback statis cuma kepanggil kalau memori AI nge-blank
-        if (incoming.ma_suhu > 45 || incoming.ror_suhu > 0.8) status_sistem = "DANGER";
-        else if (incoming.ma_gas > 800 || incoming.ror_suhu > 0.2) status_sistem = "WARNING";
+        // Fallback statis kalau file JSON belum ada
+        if (incoming.ma_suhu > 45 || incoming.ror_suhu > 0.8) status_sistem = "BAHAYA";
+        else if (incoming.ma_gas > 800 || incoming.ror_suhu > 0.2) status_sistem = "WASPADA";
         else status_sistem = "NORMAL";
       }
     }
