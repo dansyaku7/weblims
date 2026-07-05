@@ -1,92 +1,69 @@
-// Made by SyK
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { predict, TreeNode, StatusSistem } from '@/lib/c45_engine'; // Pastikan path ini bener sesuai folder lu
-import fs from 'fs';
-import path from 'path';
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 
-export const dynamic = 'force-dynamic';
-const prisma = new PrismaClient();
+// Mencegah instansiasi Prisma berulang di mode development
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
+const prisma = globalForPrisma.prisma || new PrismaClient();
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-let cachedTree: TreeNode | null = null;
-let lastLoadTime = 0;
-// Reload model JSON tiap 5 menit buat jaga-jaga lu abis retraining di background
-const RELOAD_INTERVAL_MS = 5 * 60 * 1000; 
-
-function getTree(): TreeNode | null {
-  const now = Date.now();
-  if (cachedTree && (now - lastLoadTime < RELOAD_INTERVAL_MS)) {
-    return cachedTree;
-  }
-
+// ENDPOINT GET: Dipanggil oleh Frontend (Dashboard) setiap 2 detik
+export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), 'data', 'model_tree.json');
-    const fileData = fs.readFileSync(filePath, 'utf8');
-    cachedTree = JSON.parse(fileData) as TreeNode;
-    lastLoadTime = now;
-    console.log("[AI] Model C4.5 Berhasil Di-load dari model_tree.json!");
-    return cachedTree;
+    // Ambil 1 data paling baru untuk Stat Cards
+    const latest = await prisma.sensorLog.findFirst({
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Ambil 50 data terakhir untuk Monitoring Table
+    const history = await prisma.sensorLog.findMany({
+      take: 50,
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json({ latest, history }, { status: 200 });
   } catch (error) {
-    console.error("[AI] Gagal load model_tree.json. Pastikan script train_c45.js udah dijalanin:", error);
-    return cachedTree; 
+    console.error("Error fetching sensor data:", error);
+    return NextResponse.json({ error: "Gagal mengambil data" }, { status: 500 });
   }
 }
 
+// ENDPOINT POST: Dipanggil oleh ESP32 setiap 2 detik
 export async function POST(request: Request) {
   try {
-    const payload = await request.json();
-    const incoming = {
-      api_mentah:  payload.api_mentah  ?? 4095,
-      gas_mentah:  payload.gas_mentah  ?? 0,
-      suhu_mentah: payload.suhu_mentah ?? 0.0,
-      ma_gas:      payload.ma_gas      ?? 0,
-      ma_suhu:     payload.ma_suhu     ?? 0.0,
-      ror_suhu:    payload.ror_suhu    ?? 0.0,
-    };
+    const body = await request.json();
+    
+    // Pastikan data diformat ke angka yang benar
+    const co2 = parseFloat(body.co2);
+    const o2 = parseFloat(body.o2);
 
-    let status_sistem: StatusSistem = "NORMAL";
-
-    // 1. FAIL-SAFE MUTLAK (Analog bounds)
-    if (incoming.api_mentah < 1000 || incoming.ma_suhu >= 55.0) {
-      status_sistem = "BAHAYA";
-    } 
-    else {
-      // 2. AI C4.5 PREDICTION
-      const tree = getTree();
-      
-      if (tree && !tree.isLeaf) { 
-        status_sistem = predict(tree, incoming).status;
-      } else {
-        // Fallback statis kalau file JSON belum ada
-        if (incoming.ma_suhu > 45 || incoming.ror_suhu > 0.8) status_sistem = "BAHAYA";
-        else if (incoming.ma_gas > 800 || incoming.ror_suhu > 0.2) status_sistem = "WASPADA";
-        else status_sistem = "NORMAL";
-      }
+    // Proteksi data kosong atau tidak valid
+    if (isNaN(co2) || isNaN(o2)) {
+      return NextResponse.json({ error: "Payload tidak valid, pastikan format angka benar" }, { status: 400 });
     }
 
-    await prisma.sensorLog.create({
+    // Evaluasi Logika Status (Centralized Logic di Backend)
+    let statusSistem = "NORMAL";
+    
+    if (o2 <= 195000) {
+      // Oksigen menipis ke level berbahaya
+      statusSistem = "BAHAYA";
+    } else if (co2 >= 1000) {
+      // Kualitas udara buruk / pengap
+      statusSistem = "WASPADA";
+    }
+
+    // Simpan ke database MySQL
+    const newLog = await prisma.sensorLog.create({
       data: {
-        apiMentah:    incoming.api_mentah,
-        gasMentah:    incoming.gas_mentah,
-        suhuMentah:   incoming.suhu_mentah,
-        maGas:        incoming.ma_gas,
-        maSuhu:       incoming.ma_suhu,
-        rorSuhu:      incoming.ror_suhu,
-        statusSistem: status_sistem,
+        co2: co2,
+        o2: o2,
+        statusSistem: statusSistem,
       },
     });
 
-    return NextResponse.json({ success: true, command: status_sistem });
+    return NextResponse.json({ success: true, data: newLog }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ success: false }, { status: 500 });
-  }
-}
-
-export async function GET() {
-  try {
-    const history = await prisma.sensorLog.findMany({ orderBy: { createdAt: 'desc' }, take: 10 });
-    return NextResponse.json({ latest: history[0] ?? null, history });
-  } catch (error) {
-    return NextResponse.json({ success: false }, { status: 500 });
+    console.error("Error saving sensor data:", error);
+    return NextResponse.json({ error: "Gagal menyimpan data" }, { status: 500 });
   }
 }

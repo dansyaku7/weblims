@@ -4,6 +4,12 @@ generator client {
   binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
 model Riwayat {
   id        String   @id @default(cuid())
   tipe      String
@@ -12,12 +18,6 @@ model Riwayat {
   dataForm  Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
@@ -97,14 +97,11 @@ model RiwayatDokumen {
   updatedAt DateTime @updatedAt
 }
 
+// MODEL SENSOR LOG YANG SUDAH DIBERSIHKAN (MURNI CO2 & O2)
 model SensorLog {
   id           Int      @id @default(autoincrement())
-  apiMentah    Int
-  gasMentah    Int
-  suhuMentah   Float
-  maGas        Int
-  maSuhu       Float
-  rorSuhu      Float
+  co2          Float
+  o2           Float
   statusSistem String
   createdAt    DateTime @default(now())
 

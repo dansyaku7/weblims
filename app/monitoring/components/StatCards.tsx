@@ -1,7 +1,7 @@
 // Made by SyK
 "use client";
 
-import { Thermometer, Flame, CloudFog } from "lucide-react";
+import { Cloud, Wind } from "lucide-react";
 
 interface CardProps {
   label: string;
@@ -15,7 +15,6 @@ interface CardProps {
   secValue: string | number;
   secUnit: string;
   secColor: string;
-  thresholds: { key: string; keyColor: string; num: string; numColor: string; desc: string }[];
   barClass: string;
   barWidth: string;
   barTicks: [string, string, string];
@@ -25,7 +24,7 @@ interface CardProps {
 function SensorCard({
   label, value, unit, accentClass, iconBgClass, iconColorClass, icon,
   secLabel, secValue, secUnit, secColor,
-  thresholds, barClass, barWidth, barTicks, valueColor,
+  barClass, barWidth, barTicks, valueColor,
 }: CardProps) {
   return (
     <div className={`relative overflow-hidden rounded-[14px] border border-zinc-800/70 bg-[#0f1217] p-[22px] pb-[18px] transition-all duration-300 hover:border-white/10 group`}>
@@ -47,23 +46,12 @@ function SensorCard({
 
       <div className="h-px bg-zinc-800 my-[14px]" />
 
-      {/* Secondary big stat */}
+      {/* Secondary stat */}
       <div className="mb-[14px]">
         <p className="font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-zinc-600 mb-1">{secLabel}</p>
-        <p className={`font-mono text-[28px] font-bold leading-none ${secColor}`}>
+        <p className={`font-mono text-[24px] font-bold leading-none ${secColor}`}>
           {secValue}<span className="text-[13px] text-zinc-600 font-normal"> {secUnit}</span>
         </p>
-      </div>
-
-      {/* Threshold blocks */}
-      <div className="flex gap-2 mb-[14px]">
-        {thresholds.map((t, i) => (
-          <div key={i} className="flex-1 rounded-lg border border-zinc-800 bg-[#0a0c0f] px-[10px] py-2 flex flex-col gap-[3px]">
-            <span className={`font-mono text-[9px] font-semibold uppercase tracking-[0.12em] ${t.keyColor}`}>{t.key}</span>
-            <span className={`font-mono text-[20px] font-bold leading-none ${t.numColor}`}>{t.num}</span>
-            <span className="font-mono text-[9px] text-zinc-600">{t.desc}</span>
-          </div>
-        ))}
       </div>
 
       {/* Bar */}
@@ -72,7 +60,7 @@ function SensorCard({
           <div className={`h-full rounded-full transition-all duration-700 ${barClass}`} style={{ width: barWidth }} />
         </div>
         <div className="flex justify-between mt-[5px]">
-          {barTicks.map((t, i) => <span key={i} className="font-mono text-[9px] text-zinc-700">{t}</span>)}
+          {barTicks.map((t, i) => <span key={i} className="font-mono text-[9px] text-zinc-700" key={i}>{t}</span>)}
         </div>
       </div>
     </div>
@@ -80,74 +68,40 @@ function SensorCard({
 }
 
 export default function StatCards({ data }: { data: any }) {
-  // SINKRONISASI KEY DATABASE (camelCase)
-  const suhuRaw = data?.suhuMentah ? parseFloat(data.suhuMentah) : 0;
-  const suhu = suhuRaw.toFixed(1);
-  const ror = data?.rorSuhu ? parseFloat(data.rorSuhu).toFixed(4) : "0.0000";
-  const rorSign = data?.rorSuhu && parseFloat(data.rorSuhu) >= 0 ? "+" : "";
-  const gas = data?.gasMentah || 0;
-  const maGas = data?.maGas || 0;
-  const api = data?.apiMentah ?? 4095;
-  const isApiSafe = api > 1500;
+  // Hanya mengekstrak data CO2 dan O2
+  const co2Raw = data?.co2 ? parseFloat(data.co2) : 0;
+  const o2Raw = data?.o2 ? parseFloat(data.o2) : 209500;
 
-  const suhuPct = `${Math.min(100, (suhuRaw / 60) * 100).toFixed(1)}%`;
-  const gasPct = `${Math.min(100, (gas / 4095) * 100).toFixed(1)}%`;
-  const apiPct = `${Math.min(100, (api / 4095) * 100).toFixed(1)}%`;
+  // Persentase Bar Indikator
+  const co2Pct = `${Math.min(100, (co2Raw / 5000) * 100).toFixed(1)}%`;
+  const o2Pct = `${Math.min(100, (o2Raw / 209500) * 100).toFixed(1)}%`;
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2">
       <SensorCard
-        label="Suhu Ruangan"
-        value={suhu} unit="°C"
-        accentClass="bg-gradient-to-r from-orange-500 to-orange-700"
-        iconBgClass="bg-orange-500/10 border-orange-500/20"
-        iconColorClass="text-orange-400"
-        icon={<Thermometer className="h-[18px] w-[18px]" />}
-        secLabel="Rate of Rise"
-        secValue={`${rorSign}${ror}`} secUnit="°C/s" secColor="text-orange-400"
-        thresholds={[
-          { key: "Normal",  keyColor: "text-orange-400", num: "≤ 35", numColor: "text-[#f0f6fc]", desc: "°C batas aman" },
-          { key: "Kritis",  keyColor: "text-red-400",    num: "> 50", numColor: "text-red-400",    desc: "°C bahaya" },
-        ]}
-        barClass="bg-orange-500" barWidth={suhuPct}
-        barTicks={["0°C", `${suhu}°C`, "60°C"]}
+        label="Kadar CO2"
+        value={co2Raw.toFixed(0)} unit=" ppm"
+        accentClass="bg-gradient-to-r from-purple-500 to-purple-700"
+        iconBgClass="bg-purple-500/10 border-purple-500/20"
+        iconColorClass="text-purple-400"
+        icon={<Cloud className="h-[18px] w-[18px]" />}
+        secLabel="Kualitas Udara"
+        secValue={co2Raw.toFixed(0)} secUnit="ppm" secColor="text-purple-400"
+        barClass="bg-purple-500" barWidth={co2Pct}
+        barTicks={["0", `${co2Raw.toFixed(0)}`, "5000"]}
       />
 
       <SensorCard
-        label="Kadar Gas (MQ-2)"
-        value={gas}
-        accentClass="bg-gradient-to-r from-blue-500 to-blue-700"
-        iconBgClass="bg-blue-500/10 border-blue-500/20"
-        iconColorClass="text-blue-400"
-        icon={<CloudFog className="h-[18px] w-[18px]" />}
-        secLabel="Moving Average (Baseline)"
-        secValue={maGas} secUnit="poin" secColor="text-blue-400"
-        thresholds={[
-          { key: "Waspada", keyColor: "text-blue-400",  num: "> 500",  numColor: "text-[#f0f6fc]", desc: "poin delta" },
-          { key: "Bahaya",  keyColor: "text-red-400",   num: "> 1500", numColor: "text-red-400",   desc: "poin MQ-2" },
-        ]}
-        barClass="bg-blue-500" barWidth={gasPct}
-        barTicks={["0", `${gas}`, "4095"]}
-      />
-
-      <SensorCard
-        label="Deteksi Api (Flame)"
-        value={api}
-        valueColor={isApiSafe ? "text-emerald-400" : "text-red-400 animate-pulse"}
-        accentClass="bg-gradient-to-r from-red-500 to-red-700"
-        iconBgClass="bg-red-500/10 border-red-500/20"
-        iconColorClass="text-red-400"
-        icon={<Flame className="h-[18px] w-[18px]" />}
-        secLabel="Status Sensor"
-        secValue={isApiSafe ? "AMAN" : "BAHAYA"}
-        secUnit={`· ${api}/4095`}
-        secColor={isApiSafe ? "text-emerald-400" : "text-red-400"}
-        thresholds={[
-          { key: "Aman",   keyColor: "text-emerald-400", num: "4095",   numColor: "text-emerald-400", desc: "tidak ada api" },
-          { key: "Bahaya", keyColor: "text-red-400",      num: "< 1500", numColor: "text-red-400",     desc: "api terdeteksi" },
-        ]}
-        barClass={isApiSafe ? "bg-emerald-500" : "bg-red-500"} barWidth={apiPct}
-        barTicks={["0", isApiSafe ? `${api} ✓` : `${api} ⚠`, "4095"]}
+        label="Estimasi O2"
+        value={o2Raw.toFixed(0)} unit=" ppm"
+        accentClass="bg-gradient-to-r from-cyan-500 to-cyan-700"
+        iconBgClass="bg-cyan-500/10 border-cyan-500/20"
+        iconColorClass="text-cyan-400"
+        icon={<Wind className="h-[18px] w-[18px]" />}
+        secLabel="Status Oksigen"
+        secValue={o2Raw.toFixed(0)} secUnit="ppm" secColor="text-cyan-400"
+        barClass="bg-cyan-500" barWidth={o2Pct}
+        barTicks={["0", `${o2Raw.toFixed(0)}`, "209500"]}
       />
     </div>
   );
